@@ -16,7 +16,9 @@ const config: Config = {
         secondaryText: "#6F7BB1",
         secondaryBg: '#E1E5F2',
         approve: '#30AC25',
-        reject: '#FA3636'
+        reject: '#FA3636',
+        bg3: '#ECEFFF',
+        bg4: '#D7DCF4'
       },
     },
   },

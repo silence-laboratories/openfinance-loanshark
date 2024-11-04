@@ -1,9 +1,11 @@
+"use client";
+import Chart from "react-google-charts";
 import RiskIndicator from "../_components/riskIndicator";
 
 export default function Dashboard() {
   const details = {
     name: "Daksh Garg",
-    date: new Date(),
+    date: "04/11/2024, 20:54:53",
     phone: "+91-1234567890",
     amount: "INR 12,00,000.12",
     reason: "Loan for vehicle purchase",
@@ -29,15 +31,75 @@ export default function Dashboard() {
     },
   ];
 
-  const currentBalance = 1224724;
-  const totalCredits = 1224624;
-  const totalDebits = 1224724;
-
   const balances = {
-    currentBalance: 1224724,
-    totalCredits: 1224624,
-    totalDebits: 1224724,
+    currentBalance: "1224724",
+    totalCredits: "1224624",
+    totalDebits: "1224724",
   };
+
+  const riskIndicators: {
+    title: string;
+    value: string;
+    info: string;
+    infoType: "green" | "yellow" | "red";
+  }[] = [
+    {
+      title: "Financial obligation ratio",
+      value: "12%",
+      info: "Healthy",
+      infoType: "green",
+    },
+    {
+      title: "Total outward cheque bounce",
+      value: "3",
+      info: "Even a single cheque bounce is a sign of danger",
+      infoType: "red",
+    },
+    {
+      title: "Total cash withdrawals",
+      value: "₹ 92,472",
+      info: "Withdrawal to deposit ratio too low.",
+      infoType: "yellow",
+    },
+    {
+      title: "Total cash deposits",
+      value: "₹ 1,22,472",
+      info: "Withdrawal to deposit ratio too low.",
+      infoType: "yellow",
+    },
+  ];
+
+  const endOfDayBalances = [
+    ["", "Balance"],
+    ["Jan", 404],
+    ["Feb", 500],
+    ["Mar", 650],
+    ["Apr", 900],
+    ["May", 1030],
+    ["Jun", 1200],
+    ["Jul", 1250],
+    ["Aug", 1030],
+    ["Sep", 700],
+    ["Oct", 500],
+    ["Nov", 550],
+    ["Dec", 500],
+  ];
+
+  const endOfMonthBalances = [
+    ["", "Balance"],
+    ["Jan", 404],
+    ["Feb", 500],
+    ["Mar", 650],
+    ["Apr", 900],
+    ["May", 1030],
+    ["Jun", 1200],
+    ["Jul", 1250],
+    ["Aug", 1030],
+    ["Sep", 700],
+    ["Oct", 500],
+    ["Nov", 550],
+    ["Dec", 500],
+  ];
 
   return (
     <div className="flex flex-col w-screen h-screen justify-center items-center">
@@ -53,8 +115,12 @@ export default function Dashboard() {
           />
         </div>
         <Balances {...balances} />
-        <RiskIndicator />
-        <div className="flex flex-2">
+        <ExpenseGraphs
+          endOfDayBalances={endOfDayBalances}
+          endOfMonthBalances={endOfMonthBalances}
+        />
+        <RiskIndicator riskIndicators={riskIndicators} />
+        <div className="mt-8 flex space-x-4">
           <TransactionBehaviour />
           <CreditDebitsTxn />
         </div>
@@ -73,7 +139,7 @@ const CustomerProfile = (props: {
 }) => {
   const UserCard = () => {
     return (
-      <div className="bg-secondaryBg text-secondary font-normal p-3 rounded">
+      <div className="bg-bg4 text-secondary font-normal p-3 rounded">
         {props.name}
       </div>
     );
@@ -106,11 +172,28 @@ const Balances = (props: {
   currentBalance: string;
   totalCredits: string;
   totalDebits: string;
-}) => {};
+}) => {
+  const BalanceItem = (props: { title: string; value: string }) => {
+    return (
+      <div className="flex flex-col">
+        <div className="text-xs text-gray-500">{props.title}</div>
+        <div className="">{"₹ " + props.value}</div>
+      </div>
+    );
+  };
+
+  return (
+    <div className="flex space-x-4 mt-8">
+      <BalanceItem title={"CURRENT BALANCE"} value={props.currentBalance} />
+      <BalanceItem title={"TOTAL CREDITS"} value={props.totalCredits} />
+      <BalanceItem title={"TOTAL DEBITS"} value={props.totalDebits} />
+    </div>
+  );
+};
 
 const LoanApproveReject = (props: {
   purpose: string;
-  date: Date;
+  date: string;
   amount: string;
   reason: string;
 }) => {
@@ -126,11 +209,11 @@ const LoanApproveReject = (props: {
   };
   return (
     <div className="flex-1 flex flex-col bg-white p-3  rounded-lg">
-      <div className="self-start text-xs bg-secondaryBg p-2  rounded">
+      <div className="self-start text-xs bg-bg4 p-2  rounded">
         {props.purpose}
       </div>
       <DetailRow title={"AMOUNT"} value={props.amount} />
-      <DetailRow title={"DATE"} value={props.date.toLocaleString()} />
+      <DetailRow title={"DATE"} value={props.date} />
       <DetailRow title={"REASON"} value={props.reason} />
       <div className="flex space-x-4 mt-4">
         <div className="text-sm text-white bg-approve py-2 px-4 rounded-lg">
@@ -145,9 +228,49 @@ const LoanApproveReject = (props: {
 };
 
 const TransactionBehaviour = () => {
-  return <div></div>;
+  return (
+    <div className="flex-1">
+      <div>TRANSACTION BEHAVIOUR</div>
+      <Chart
+        chartType="PieChart"
+        data={[
+          ["Task", "Hours per Day"],
+          ["label", 2],
+          ["label", 2],
+          ["label", 6],
+        ]}
+        options={{ title: "Expense categorisation" }}
+      />
+    </div>
+  );
 };
 
 const CreditDebitsTxn = () => {
-  return <div></div>;
+  return <div className="flex-1"></div>;
+};
+
+const ExpenseGraphs = (props: {
+  endOfDayBalances: any;
+  endOfMonthBalances: any;
+}) => {
+  return (
+    <div className="flex space-x-4 mt-4">
+      <div className="flex-1">
+        <Chart
+          chartType="LineChart"
+          data={props.endOfDayBalances}
+          options={{ title: "End of day balances" }}
+          legendToggle
+        />
+      </div>
+      <div className="flex-1">
+        <Chart
+          chartType="LineChart"
+          data={props.endOfMonthBalances}
+          options={{ title: "End of month balances" }}
+          legendToggle
+        />
+      </div>
+    </div>
+  );
 };
