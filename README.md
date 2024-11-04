@@ -17,6 +17,13 @@ Silent Compute proposes a secure compute inference model using privacy-enhancing
 
 ![image](https://github.com/user-attachments/assets/81de190b-d018-4e85-8914-fb0f7a8c4bda)
 
+ <div style="text-align: center;">
+    <figure>
+        <img src="https://github.com/user-attachments/assets/81de190b-d018-4e85-8914-fb0f7a8c4bda" alt="Image 124 width="640"/>
+        <figcaption>Secret sharing of ciphertext E across multiple nodes </figcaption>
+    </figure>
+</div> 
+
 
 2. **Governance & auditability via verifiable consent**: The involvement of multiple entities, including certain unregulated participants like TSPs makes it difficult to establish clear guidelines for accountability. Furthermore, lack of transparency of data usage creates trust gaps with users. Silent Compute enhances governance & reinforces purpose limitation by marrying consent & computation to enforce consent terms in the usage of data.
 
