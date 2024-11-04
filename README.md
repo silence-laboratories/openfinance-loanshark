@@ -43,7 +43,7 @@ This ensures that any party who wishes to reconstruct $\mathsf{sk}$ (and therefo
 
  <div style="text-align: center;">
     <figure>
-        <img src="https://hackmd.io/_uploads/B1rS3Z6yJx.png" alt="Image 124 width="640"/>
+        <img src="https://hackmd.io/_uploads/B1rS3Z6yJx.png" alt="Image 124 width="340"/>
         <figcaption>Secret sharing of ciphertext E across multiple nodes </figcaption>
     </figure>
 </div> 
@@ -60,7 +60,7 @@ Recall the diagram from the previous section that described the flow of informat
 
  <div style="text-align: center;">
     <figure>
-        <img src="https://hackmd.io/_uploads/SyCsysak1e.png" alt="Image 15" width="240"/>
+        <img src="https://hackmd.io/_uploads/SyCsysak1e.png" alt="Image 15" width="320"/>
         <figcaption>Computation of f(d) without reconstructing d at a single place </figcaption>
     </figure>
 </div> 
@@ -71,7 +71,7 @@ This system allows for AA, FIU, and Sahamati nodes to securely store the data in
 
  <div style="text-align: center;">
     <figure>
-        <img src="https://hackmd.io/_uploads/H19TGB4AC.png" alt="Image 17" width="240"/>
+        <img src="https://hackmd.io/_uploads/H19TGB4AC.png" alt="Image 17" width="320"/>
         <figcaption>Preventing access of input information in case of a rogue data use attempt </figcaption>
     </figure>
 </div> 
