@@ -15,11 +15,10 @@ Silent Compute proposes a secure compute inference model using privacy-enhancing
 
 ![image](https://github.com/user-attachments/assets/f6dafcfa-2b27-4e6b-8189-51b8bfc6e29f)
 
-![image](https://github.com/user-attachments/assets/81de190b-d018-4e85-8914-fb0f7a8c4bda)
 
  <div style="text-align: center;">
     <figure>
-        <img src="https://github.com/user-attachments/assets/81de190b-d018-4e85-8914-fb0f7a8c4bda" alt="Image 124 width="640"/>
+        <img src="https://github.com/user-attachments/assets/81de190b-d018-4e85-8914-fb0f7a8c4bda" alt="Image 124 width="200"/>
         <figcaption>Secret sharing of ciphertext E across multiple nodes </figcaption>
     </figure>
 </div> 
