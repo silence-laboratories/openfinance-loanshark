@@ -11,14 +11,12 @@ Silent Compute proposes a secure compute inference model using privacy-enhancing
 1. **Privacy-preserving Computing on Encrypted Data from FIPs**: FIUs are vulnerable to single point of failure via data breaches or misuse for non-approved purposes, or compromise with utility for privacy & compliance. Our distributed compute engine eliminates exposure of plaintext raw data to FIUs, ensuring usage aligns with the purpose of data fetch & eliminating risk of data misuse or breach  while complying with key privacy principles
 
 
-
-
-- Compute on Encrypted and Sharded Data ( Zero exposure of data in use and no single point of failure): Encrypted data from the FIP is sharded (split into multiple pieces—three in the proposed design) across legally isolated computing nodes, FICUs before any computation is performed. This ensures that the user's data is never exposed in plaintext to any party other than the FIP and is not stored as a whole with any single entity, thus eliminating a single point of failure. Silent Compute uses a privacy technique called Multi-Party Computation (MPC) to achieve computation on encrypted data, the details of which are discussed in next sections.
+- Compute on Encrypted and Sharded Data ( Zero exposure of data in use and no single point of failure): Encrypted data from the FIP is sharded (split into multiple pieces—three in the proposed design) across legally isolated financial information computing nodes, FICUs, before any computation is performed. This ensures that the user's data is never exposed in plaintext to any party other than the FIP and is not stored as a whole with any single entity, thus eliminating a single point of failure. Silent Compute uses a privacy technique called Multi-Party Computation (MPC) to achieve computation on encrypted data, all without any protocol modifications at FIPs or AA.
 
 ![image](https://github.com/user-attachments/assets/f6dafcfa-2b27-4e6b-8189-51b8bfc6e29f)
 
 
-2. **Governance & auditability via verifiable consent**: Involvement of multiple entities, including certain unregulated participants like TSPs makes it difficult to establish clear guidelines for accountability. Furthermore, lack of transparency of data usage creates trust gaps with users. Silent Compute enhances governance & reinforces purpose limitation by marrying consent & computation to enforce consent terms in the usage of data.
+2. **Governance & auditability via verifiable consent**: The involvement of multiple entities, including certain unregulated participants like TSPs makes it difficult to establish clear guidelines for accountability. Furthermore, lack of transparency of data usage creates trust gaps with users. Silent Compute enhances governance & reinforces purpose limitation by marrying consent & computation to enforce consent terms in the usage of data.
 
 - Binding Consent with Inference ( Purpose limitation-transparency and auditability): Consent is registered in form of signing of decomposed sequences of purpose-bound operation codes. Any financial inference by the FIU is performed only if the opcode sequence for the corresponding logic can be proved and verified by the consent prover. Thus, Silent Compute enables end-to-end verifiable consent that is tightly coupled with computations."
 
