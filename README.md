@@ -1,36 +1,7 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+Our solution solves for trust - how to enable, enforce & audit sensitive collaborations between participants. Exposure of raw customer data to FIUs & TSPs broadens the attack surface and creates a trust gap between FIPs & FIUs, resulting in hesitant and limited participation due to insufficient assurance & clarity regarding data usage.
 
-## Getting Started
+Silent Compute proposes an inference exchange model, where FIPs & FIUs collaborate on consented customer inferences rather than moving the raw data to FIUs. The cryptographic Multi-Party Computation (MPC) protocols allow FIUs to extract consent-bound insights from customer’s data, ensuring usage is tied to what customer has consented for, tackling key challenges like:
 
-First, run the development server:
-
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
-
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
-
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
-
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+1. **Privacy preserving inference network**: FIUs are vulnerable to single point of failure via data breaches or misuse for non-approved purposes, or compromise with utility for privacy & compliance. Our distributed compute engine eliminates exposure of plaintext raw data to FIUs, ensuring usage aligns with the purpose of data fetch & eliminating risk of data misuse or breach  while complying with key privacy principles
+2. **Governance & auditability via verifiable consent**: Involvement of multiple entities, including certain unregulated participants like TSPs makes it difficult to establish clear guidelines for accountability. Furthermore, lack of transparency of data usage creates trust gaps with users. Silent Compute enhances governance & reinforces purpose limitation by marrying consent & computation to enforce consent terms in the usage of data
+3. **Balancing socio-economic incentives**: FIUs & TSPs derive substantial value by utilising data to offer personalised services. However, FIPs and AAs do not equally share these benefits. A more equitable distribution of the value generated can be brought by a usage-based compensation model, incentivising better performance & availability from FIPs having financial outcomes directly linked directly to the quality of their service
