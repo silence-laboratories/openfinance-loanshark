@@ -43,7 +43,7 @@ This ensures that any party who wishes to reconstruct $\mathsf{sk}$ (and therefo
 
  <div style="text-align: center;">
     <figure>
-        <img src="https://hackmd.io/_uploads/B1rS3Z6yJx.png" alt="Image 124 width="340"/>
+        <img src="https://hackmd.io/_uploads/B1rS3Z6yJx.png" alt="Image 124 width="320"/>
         <figcaption>Secret sharing of ciphertext E across multiple nodes </figcaption>
     </figure>
 </div> 
