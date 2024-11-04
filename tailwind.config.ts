@@ -18,7 +18,12 @@ const config: Config = {
         approve: '#30AC25',
         reject: '#FA3636',
         bg3: '#ECEFFF',
-        bg4: '#D7DCF4'
+        bg4: '#D7DCF4',
+        user1: '#83AB8B',
+        user2: '#C8EDCF',
+        user3: '#468A53',
+        userWarn1: '#FFEBDD',
+        userWarn2: '#735C48'
       },
     },
   },
