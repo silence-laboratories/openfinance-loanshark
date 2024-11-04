@@ -1,6 +1,7 @@
 "use client";
 import Chart from "react-google-charts";
 import RiskIndicator from "../_components/riskIndicator";
+import { useRouter } from "next/navigation";
 
 export default function Dashboard() {
   // const details = {
@@ -228,6 +229,8 @@ const LoanApproveReject = (props: {
   amount: string;
   purpose: string;
 }) => {
+  const router = useRouter();
+
   const DetailRow = (props: { title: string; value: string }) => {
     return (
       <div className="flex mt-2 justify-between">
@@ -249,13 +252,47 @@ const LoanApproveReject = (props: {
       <div className="flex space-x-4 mt-4">
         <div
           className="text-sm text-white bg-approve py-2 px-4 rounded-lg"
-          onClick={() => loanStatus("approve")}
+          onClick={() => {
+            let details;
+            let detailsJSON = localStorage.getItem("user-details");
+            if (detailsJSON) {
+              details = JSON.parse(detailsJSON)[0];
+            }
+
+            localStorage.setItem(
+              "user-details",
+              JSON.stringify([
+                {
+                  ...details,
+                  loanStatus: "Approved",
+                },
+              ])
+            );
+            router.push("/user/loan");
+          }}
         >
           Approve request
         </div>
         <div
           className="text-sm text-white bg-reject py-2 px-4 rounded-lg"
-          onClick={() => loanStatus("reject")}
+          onClick={() => {
+            let details;
+            let detailsJSON = localStorage.getItem("user-details");
+            if (detailsJSON) {
+              details = JSON.parse(detailsJSON)[0];
+            }
+
+            localStorage.setItem(
+              "user-details",
+              JSON.stringify([
+                {
+                  ...details,
+                  loanStatus: "Reject",
+                },
+              ])
+            );
+            router.push("/user/loan");
+          }}
         >
           Reject
         </div>
