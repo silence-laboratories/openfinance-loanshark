@@ -67,7 +67,8 @@ This system allows for AA, FIU, and Sahamati nodes to securely store the data in
         <img src="https://hackmd.io/_uploads/H19TGB4AC.png" alt="Image 17" width="320"/>
         <figcaption>Preventing access of input information in case of a rogue data use attempt </figcaption>
     </figure>
-</div> 
+</div>
+
 ## Integrating with Sahamati
 
 `silence-fiu` is a registered FIU entity with Sahamati Proxy
