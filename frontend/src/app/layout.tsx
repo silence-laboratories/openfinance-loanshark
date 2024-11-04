@@ -37,7 +37,7 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased bg-gray-50`}
       >
         <div className="flex justify-center items-center border-b-2 w-screen h-16">
-          <div className="text-2xl">Insightly</div>
+          <div className="text-2xl">Secure Loans</div>
         </div>
         {children}
       </body>

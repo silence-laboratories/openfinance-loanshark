@@ -1,8 +1,10 @@
 "use client";
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 
 export default function Consent() {
-  const [screen, setScreen] = useState("2");
+  const router = useRouter();
+  const [screen, setScreen] = useState("1");
 
   const selectedBarCss = "h-2 bg-gray-400 rounded flex-1";
   const OtherBarCss = "h-2 bg-gray-200 rounded flex-1";
@@ -12,17 +14,17 @@ export default function Consent() {
     {
       title: "Balances & cash flow",
       subtitle:
-        "Insightly will be able to see insights from all your transactions.",
+        "Secure Loans will be able to see insights from all your transactions.",
     },
     {
       title: "Risk indicators",
       subtitle:
-        "Insightly will be able to see overdraft ratio, bounced & cleared cheques, and pull credit information.",
+        "Secure Loans will be able to see overdraft ratio, bounced & cleared cheques, and pull credit information.",
     },
     {
       title: "Expense categorisation",
       subtitle:
-        "Insightly will be able to see category wise expenses & insights.",
+        "Secure Loans will be able to see category wise expenses & insights.",
     },
   ];
 
@@ -32,7 +34,7 @@ export default function Consent() {
   const process = [
     {
       title: "Time Period: Last 6 months",
-      subtitle: `Insightly will be able to see all transactions carried between ${startDate} - ${endDate}`,
+      subtitle: `Secure Loans will be able to see all transactions carried between ${startDate} - ${endDate}`,
     },
     {
       title: "Expiry: 1 month",
@@ -40,7 +42,7 @@ export default function Consent() {
     },
     {
       title: "Data Fetching: Daily",
-      subtitle: "Insightly will fetch data daily.",
+      subtitle: "Secure Loans will fetch data daily.",
       warning: "This seems higher when compared to similar apps.",
     },
   ];
@@ -81,11 +83,11 @@ export default function Consent() {
             Verify all details before approving
           </div>
           <div className="text-gray-500 p-4">
-            Insightly is requesting access to the following insights
+            Secure Loans is requesting access to the following insights
           </div>
           <Insights insights={insights} />
           <div className="text-gray-500 p-4">
-            This is how Insightly will process your data
+            This is how Secure Loans will process your data
           </div>
           <InsightsProcess process={process} />
           <div className="cursor-pointer self-start ml-4 p-2 rounded-lg bg-gray-800 text-white">
@@ -97,7 +99,7 @@ export default function Consent() {
         <>
           <div className="self-center text-lg px-4">SELECT ACCOUNTS</div>
           <div className="self-center text-gray-500 px-4">
-            Select which accounts Insightly can fetch information from.
+            Select which accounts Secure Loans can fetch information from.
           </div>
           <Banks
             banks={userBanks}
@@ -113,7 +115,7 @@ export default function Consent() {
         </>
       )}
       <div className="self-start mx-4 mt-4 p-2 rounded-lg bg-userWarn1  text-userWarn2">
-        Insightly will not be able to see specific transaction data from
+        Secure Loans will not be able to see specific transaction data from
         accounts you share. It will only have access to the insights & trends.
       </div>
       <div className="self-start ml-4 mt-4 p-2 rounded-lg bg-gray-100  ">
@@ -125,7 +127,7 @@ export default function Consent() {
           onClick={() => {
             if (screen == "1") setScreen("2");
             else {
-              // Approve logic
+              router.push("/user/loan");
             }
           }}
         >

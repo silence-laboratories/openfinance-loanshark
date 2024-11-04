@@ -2,12 +2,6 @@
 import Image from "next/image";
 import { useState } from "react";
 
-import { createClient } from "@supabase/supabase-js";
-const supabaseUrl = "https://kucgqnqbntmdwzwuhayj.supabase.co";
-const supabaseKey =
-  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imt1Y2dxbnFibnRtZHd6d3VoYXlqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Mjg5MTI3MzgsImV4cCI6MjA0NDQ4ODczOH0.kNb5K8_k5w8PlfD6wrtDvIle3lRQI2f4hFtmiPtj3ss";
-const supabase = createClient(supabaseUrl, supabaseKey);
-
 import { useRouter } from "next/navigation";
 
 export default function Home() {
@@ -25,39 +19,33 @@ export default function Home() {
   const submitConsent = async () => {
     setIsLoading(true);
 
-    fetch("http://localhost:5000/api/v1/create-consent", {
-      method: "POST",
-    })
-      .then((response) => response.json())
-      .then(async (result) => {
-        const { data, error } = await supabase
-          .from("user")
-          .insert([
-            {
-              name,
-              phone,
-              amount: selectedAmount,
-              purpose: selectedPurpose,
-              "loan-status": "Pending",
-              "consent-handle": result.ConsentHandle,
-            },
-          ])
-          .select();
-
-        if (data) {
-          router.push("/new");
-        } else if (error) {
-          console.error("Error inserting data:", error);
-          // Handle error scenario
-        }
-      })
-      .catch((error) => console.error(error));
+    // fetch("http://localhost:5000/api/v1/create-consent", {
+    //   method: "POST",
+    // })
+    //   .then((response) => response.json())
+    //   .then(async (result) => {
+    //     console.log(result);
+    //   })
+    //   .catch((error) => console.error(error));
+    localStorage.setItem(
+      "user-details",
+      JSON.stringify([
+        {
+          name,
+          phone,
+          amount: selectedAmount,
+          purpose: selectedPurpose,
+          loanStatus: "Pending",
+        },
+      ])
+    );
+    router.push("/user/consent");
   };
 
   return (
     <div className="flex flex-col w-screen h-screen justify-center items-center">
       <div className="flex flex-col min-w-80 w-2/5 h-screen mt-10">
-        <div className="text-2xl font-bold">Insightly Loans</div>
+        <div className="text-2xl font-bold">Secure Loans</div>
         <div className="text-xs mt-2 text-slate-500">
           Get instant loans upto INR 50,00,000
         </div>
@@ -97,9 +85,9 @@ export default function Home() {
           className="w-full bg-violet-100 rounded-md shadow-sm focus:outline-none px-2 py-3 mt-1 text-sm"
         >
           <option value="">Select an option</option>
-          <option value="1-10">1 Lakh to 10 Lakhs</option>
-          <option value="10-50">10 Lakhs to 50 Lakhs</option>
-          <option value="50+">More than 50 Lakhs</option>
+          <option value="1 Lakh to 10 Lakhs">1 Lakh to 10 Lakhs</option>
+          <option value="10 Lakhs to 50 Lakhs">10 Lakhs to 50 Lakhs</option>
+          <option value="More than 50 Lakhs">More than 50 Lakhs</option>
         </select>
         <div className="mt-8">Purpose</div>
         <select
@@ -112,10 +100,10 @@ export default function Home() {
           className="w-full bg-violet-100 rounded-md shadow-sm focus:outline-none px-2 py-3 mt-1 text-sm"
         >
           <option value="">Select an option</option>
-          <option value="vehicle">Vehicle</option>
-          <option value="education">Education</option>
-          <option value="entrepreneurship">Entrepreneurship</option>
-          <option value="trading-investing">Trading & Investing</option>
+          <option value="Vehicle">Vehicle</option>
+          <option value="Education">Education</option>
+          <option value="Entrepreneurship">Entrepreneurship</option>
+          <option value="Trading & Investing">Trading & Investing</option>
         </select>
 
         <div className="flex space-x-4 mt-8">
