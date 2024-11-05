@@ -78,3 +78,15 @@ We create a mock AA, `slience-aa-mock` to simulate all the responses of AA via S
 `constants.py` file in util folder needs to upadted with relevant details of the FIU that is testing.
 
 `CLIENT_ID`, `CLIENT_SECRET`, `PUBLIC_KEY`, `PRIVATE_KEY` , `USERNAME` and `PASSWORD` needs to filled with relevant details of a FIU.
+
+## Demo
+
+User flow, looks best in mobile view
+
+- Open https://loanshark.silencelaboratories.com/
+
+Admin flow
+
+- Once the consent is approved,
+- Open https://loanshark.silencelaboratories.com/admin
+- In a new tab, click the user and approve
