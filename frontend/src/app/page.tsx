@@ -1,8 +1,13 @@
 "use client";
 import Image from "next/image";
 import { useState } from "react";
-
 import { useRouter } from "next/navigation";
+import { createClient } from "@supabase/supabase-js";
+import { SUPABASE_KEY, SUPABASE_URL, CLIENT_URL } from "./constants";
+
+const supabaseUrl = SUPABASE_URL;
+const supabaseKey = SUPABASE_KEY;
+const supabase = createClient(supabaseUrl, supabaseKey);
 
 export default function Home() {
   const router = useRouter();
@@ -19,27 +24,30 @@ export default function Home() {
   const submitConsent = async () => {
     setIsLoading(true);
 
-    // fetch("http://localhost:5000/api/v1/create-consent", {
+    // let response = await fetch(`${CLIENT_URL}/api/create-consent`, {
     //   method: "POST",
-    // })
-    //   .then((response) => response.json())
-    //   .then(async (result) => {
-    //     console.log(result);
-    //   })
-    //   .catch((error) => console.error(error));
-    localStorage.setItem(
-      "user-details",
-      JSON.stringify([
+    // });
+    // let consentData = await response.json();
+
+    let consentData = { handle: "test" };
+
+    const { data, error } = await supabase
+      .from("user")
+      .insert([
         {
           name,
           phone,
           amount: selectedAmount,
           purpose: selectedPurpose,
-          loanStatus: "Pending",
+          loanStatus: "PENDING",
+          consentHandle: consentData.handle,
         },
       ])
-    );
-    router.push("/user/consent");
+      .select();
+
+    if (data) {
+      router.push(`/user/consent?phone=${phone}&id=${data[0].id}`);
+    }
   };
 
   return (
@@ -80,7 +88,6 @@ export default function Home() {
           value={selectedAmount}
           onChange={(event) => {
             setSelectedAmount(event.target.value);
-            console.log("Selected:", event.target.value);
           }}
           className="w-full bg-violet-100 rounded-md shadow-sm focus:outline-none px-2 py-3 mt-1 text-sm"
         >
@@ -95,7 +102,6 @@ export default function Home() {
           value={selectedPurpose}
           onChange={(event) => {
             setSelectedPurpose(event.target.value);
-            console.log("Selected:", event.target.value);
           }}
           className="w-full bg-violet-100 rounded-md shadow-sm focus:outline-none px-2 py-3 mt-1 text-sm"
         >

@@ -1,10 +1,15 @@
 "use client";
 import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 
 export default function Consent() {
   const router = useRouter();
   const [screen, setScreen] = useState("1");
+
+  const searchParams = useSearchParams();
+
+  const phone = searchParams.get("phone");
+  const id = searchParams.get("id");
 
   const selectedBarCss = "h-2 bg-gray-400 rounded flex-1";
   const OtherBarCss = "h-2 bg-gray-200 rounded flex-1";
@@ -104,7 +109,6 @@ export default function Consent() {
           <Banks
             banks={userBanks}
             update={(accNo, value) => {
-              console.log(accNo, value);
               setUserBanks((prev) => {
                 const b = prev.find((b) => b.accNo == accNo);
                 if (b) b.isSelected = value;
@@ -123,17 +127,17 @@ export default function Consent() {
       </div>
       <div className="flex mx-4 mt-12 space-x-4">
         <div
-          className="flex bg-approve flex-1 p-4 rounded-lg text-white text-lg font-semibold justify-center"
+          className="flex bg-approve flex-1 p-4 rounded-lg text-white text-lg font-semibold justify-center cursor-pointer"
           onClick={() => {
             if (screen == "1") setScreen("2");
             else {
-              router.push("/user/loan");
+              router.push(`/user/loan?phone=${phone}&id=${id}`);
             }
           }}
         >
           {screen == "1" ? "Select accounts" : "One-tap approve"}
         </div>
-        <div className=" bg-reject bg-opacity-20 rounded-lg text-reject  text-lg font-semibold p-4">
+        <div className=" bg-reject bg-opacity-20 rounded-lg text-reject  text-lg font-semibold p-4 cursor-pointer">
           Reject
         </div>
       </div>

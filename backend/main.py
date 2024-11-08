@@ -27,7 +27,6 @@ api_v1 = Blueprint('api_v1', __name__, url_prefix='/api/v1')
 
 # Hello world route
 @api_v1.route('/')
-@cross_origin()
 def hello():
     try:
         return 'Hello world with Flask'
@@ -36,7 +35,6 @@ def hello():
 
 # Create consent API
 @api_v1.route('/create-consent', methods=['POST'])
-@cross_origin()
 async def consent():
     try:
         body = {
