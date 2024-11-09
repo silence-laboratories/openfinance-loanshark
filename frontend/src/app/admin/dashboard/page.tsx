@@ -30,32 +30,24 @@ export default function Dashboard() {
     if (user) {
       setDetails(user);
     }
+
+    // let response = await fetch(`${CLIENT_URL}/api/fetch-insights`, {
+    //   method: "POST",
+    // });
+    // let insights = await response.json();
   };
 
   const reviewParams = {
-    reason: "Loan Underwriting CT001",
-    timePeriod: "Last 4 months",
-    frequency: "Monthly",
-    expiry: "6 months",
+    reason: "Customer spending patterns, budget or other reportings - 102",
+    timePeriod: "Last 12 months",
+    frequency: "Daily",
+    expiry: "12 months",
   };
 
-  const userBanks = [
-    {
-      accNo: "HDFC0123456789",
-      type: "Savings account",
-      isSelected: true,
-    },
-    {
-      accNo: "HDFC0123456987",
-      type: "Savings account",
-      isSelected: false,
-    },
-  ];
-
   const balances = {
-    currentBalance: "1224724",
-    totalCredits: "1224624",
-    totalDebits: "1224724",
+    currentBalance: "1,24,724",
+    totalCredits: "2,43,624",
+    totalDebits: "1,18,900",
   };
 
   const riskIndicators: {
@@ -92,34 +84,29 @@ export default function Dashboard() {
 
   const endOfDayBalances = [
     ["", "Balance"],
-    ["Jan", 404],
-    ["Feb", 500],
-    ["Mar", 650],
-    ["Apr", 900],
-    ["May", 1030],
-    ["Jun", 1200],
-    ["Jul", 1250],
-    ["Aug", 1030],
-    ["Sep", 700],
-    ["Oct", 500],
-    ["Nov", 550],
-    ["Dec", 500],
+    ["Sun", 60400],
+    ["Mon", 50000],
+    ["Tue", 65000],
+    ["Wed", 70000],
+    ["Thur", 83000],
+    ["Fri", 62000],
+    ["Sat", 72500],
   ];
 
   const endOfMonthBalances = [
     ["", "Balance"],
-    ["Jan", 404],
-    ["Feb", 500],
-    ["Mar", 650],
-    ["Apr", 900],
-    ["May", 1030],
-    ["Jun", 1200],
-    ["Jul", 1250],
-    ["Aug", 1030],
-    ["Sep", 700],
-    ["Oct", 500],
-    ["Nov", 550],
-    ["Dec", 500],
+    ["Jan", 40400],
+    ["Feb", 50000],
+    ["Mar", 65000],
+    ["Apr", 90000],
+    ["May", 103000],
+    ["Jun", 120000],
+    ["Jul", 125000],
+    ["Aug", 103000],
+    ["Sep", 70000],
+    ["Oct", 50000],
+    ["Nov", 55000],
+    ["Dec", 50000],
   ];
 
   return (
@@ -139,7 +126,10 @@ export default function Dashboard() {
         {details ? (
           <>
             <div className="flex mt-4 space-x-4 ">
-              <CustomerProfile name={details[0].name} banks={userBanks} />
+              <CustomerProfile
+                name={details[0].name}
+                banks={details[0].bankAccounts}
+              />
               <LoanApproveReject
                 reason={reviewParams.reason}
                 amount={details[0].amount}
@@ -208,14 +198,23 @@ const CustomerProfile = (props: {
     type: string;
     isSelected: boolean;
   }) => {
-    const selectedCss = "p-3 rounded bg-green-100";
-    const unSelectedCss = "p-3 rounded bg-green-100 mt-4";
-    return (
-      <div className={bank.isSelected ? selectedCss : unSelectedCss}>
-        <div className="text-sm">{bank.accNo}</div>
-        <div className="text-xs">{bank.type}</div>
+    const selectedCss = "p-3 rounded bg-green-100 mt-4";
+    return bank.isSelected ? (
+      <div className={selectedCss}>
+        <div className="flex">
+          <div className="flex align-middle mr-4 items-center">
+            <img
+              src="https://companieslogo.com/img/orig/HDB-bb6241fe.png"
+              style={{ width: "18px", height: "18px" }}
+            />
+          </div>
+          <div className="flex flex-1 flex-col">
+            <div className="text-sm">{bank.accNo}</div>
+            <div className="text-xs">{bank.type}</div>
+          </div>
+        </div>
       </div>
-    );
+    ) : null;
   };
   return (
     <div className="flex-1">
@@ -286,6 +285,7 @@ const LoanApproveReject = (props: {
   };
   return (
     <div className="flex-1 flex flex-col bg-white p-3  rounded-lg">
+      <div className="text-sm mb-2">Purpose</div>
       <div className="self-start text-xs bg-bg4 p-2 rounded mb-6">
         {props.reason}
       </div>
@@ -328,6 +328,7 @@ const TransactionBehaviour = () => {
       <div>TRANSACTION BEHAVIOUR</div>
       <Chart
         chartType="PieChart"
+        height={400}
         data={[
           ["Task", "Hours per Day"],
           ["Food", 200],
@@ -341,7 +342,36 @@ const TransactionBehaviour = () => {
 };
 
 const CreditDebitsTxn = () => {
-  return <div className="flex-1"></div>;
+  return (
+    <div className="flex-1">
+      <div className="mt-6 text-sm">Top 3 Credits</div>
+      <div className="p-2 rounded bg-green-100 mt-4 flex justify-between">
+        <div className="text-sm">COMPANY - 1st June, 2024</div>
+        <div className="text-sm">₹ 1,87,000</div>
+      </div>
+      <div className="p-2 rounded bg-green-100 mt-4 flex justify-between">
+        <div className="text-sm">John K - 12th August, 2024</div>
+        <div className="text-sm">₹ 76,000</div>
+      </div>
+      <div className="p-2 rounded bg-green-100 mt-4 flex justify-between">
+        <div className="text-sm">IMPS/AIR - 3rd February, 2024</div>
+        <div className="text-sm">₹ 54,000</div>
+      </div>
+      <div className="mt-6 text-sm">Top 3 Debits</div>
+      <div className="p-2 rounded bg-red-100 mt-4 flex justify-between">
+        <div className="text-sm">Flipkart - 21st October, 2024</div>
+        <div className="text-sm">₹ 54,000</div>
+      </div>
+      <div className="p-2 rounded bg-red-100 mt-4 flex justify-between">
+        <div className="text-sm">Swiggy - 1st January, 2024</div>
+        <div className="text-sm">₹ 24,000</div>
+      </div>
+      <div className="p-2 rounded bg-red-100 mt-4 flex justify-between">
+        <div className="text-sm">U.S Polo - 17th May, 2024</div>
+        <div className="text-sm">₹ 13,682</div>
+      </div>
+    </div>
+  );
 };
 
 const ExpenseGraphs = (props: {
@@ -354,8 +384,7 @@ const ExpenseGraphs = (props: {
         <Chart
           chartType="LineChart"
           data={props.endOfDayBalances}
-          options={{ title: "End of day balances" }}
-          legendToggle
+          options={{ title: "Avg. End of day balances" }}
         />
       </div>
       <div className="flex-1">
@@ -363,7 +392,7 @@ const ExpenseGraphs = (props: {
           chartType="LineChart"
           data={props.endOfMonthBalances}
           options={{ title: "End of month balances" }}
-          legendToggle
+          legendToggle={false}
         />
       </div>
     </div>

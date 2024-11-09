@@ -2,6 +2,13 @@
 import { useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 
+import { createClient } from "@supabase/supabase-js";
+import { SUPABASE_KEY, SUPABASE_URL, CLIENT_URL } from "../../constants";
+
+const supabaseUrl = SUPABASE_URL;
+const supabaseKey = SUPABASE_KEY;
+const supabase = createClient(supabaseUrl, supabaseKey);
+
 export default function Consent() {
   const router = useRouter();
   const [screen, setScreen] = useState("1");
@@ -33,22 +40,22 @@ export default function Consent() {
     },
   ];
 
-  const startDate = "21st October";
-  const endDate = "21st November";
+  const startDate = "21st October, 2023";
+  const endDate = "9th November, 2024";
+  const expiryEndDate = "9th November, 2025";
 
   const process = [
     {
-      title: "Time Period: Last 6 months",
-      subtitle: `Secure Loans will be able to see all transactions carried between ${startDate} - ${endDate}`,
+      title: "Time Period: Last 12 months",
+      subtitle: `Fetch your financial data from ${startDate} to ${endDate}`,
     },
     {
-      title: "Expiry: 1 month",
-      subtitle: `This permission will last till ${endDate}.`,
+      title: "Expiry: 12 months",
+      subtitle: `This permission will last till ${expiryEndDate}.`,
     },
     {
       title: "Data Fetching: Daily",
-      subtitle: "Secure Loans will fetch data daily.",
-      warning: "This seems higher when compared to similar apps.",
+      subtitle: "Data will be fetched daily.",
     },
   ];
 
@@ -64,6 +71,17 @@ export default function Consent() {
       isSelected: false,
     },
   ]);
+
+  const consentApprove = async () => {
+    const { data, error } = await supabase
+      .from("user")
+      .update({ bankAccounts: userBanks })
+      .eq("id", id)
+      .select();
+    if (data) {
+      router.push(`/user/loan?phone=${phone}&id=${id}`);
+    }
+  };
   return (
     <div className="flex flex-col">
       <div className="p-4 bg-user2 bg-opacity-50">
@@ -72,9 +90,11 @@ export default function Consent() {
       {screen == "1" && (
         <div className="bg-user2 p-4">
           <div className="text-user3">Purpose</div>
-          <div className="text-lg">To process your loan application</div>
+          <div className="text-lg">
+            Customer spending patterns, budget or other reportings
+          </div>
           <div className="text-user3 mt-4">Purpose Code</div>
-          <div className="text-lg">Loan Underwriting CT001</div>
+          <div className="text-lg">102</div>
         </div>
       )}
       <div className="flex space-x-8 p-8">
@@ -95,9 +115,9 @@ export default function Consent() {
             This is how Secure Loans will process your data
           </div>
           <InsightsProcess process={process} />
-          <div className="cursor-pointer self-start ml-4 p-2 rounded-lg bg-gray-800 text-white">
+          {/* <div className="cursor-pointer self-start ml-4 p-2 rounded-lg bg-gray-800 text-white">
             Modify permissions
-          </div>
+          </div> */}
         </>
       )}
       {screen == "2" && (
@@ -118,26 +138,33 @@ export default function Consent() {
           />
         </>
       )}
-      <div className="self-start mx-4 mt-4 p-2 rounded-lg bg-userWarn1  text-userWarn2">
+      <div className="self-start mx-4 mt-4 p-2 rounded-lg bg-userWarn1 text-userWarn2">
         Secure Loans will not be able to see specific transaction data from
         accounts you share. It will only have access to the insights & trends.
       </div>
-      <div className="self-start ml-4 mt-4 p-2 rounded-lg bg-gray-100  ">
-        You can cancel all permissions when you want.
+      <div className="self-start mx-4 mt-4 p-2 rounded-lg bg-userWarn1 text-userWarn2">
+        You can cancel all the permissions whenever you want
       </div>
       <div className="flex mx-4 mt-12 space-x-4">
         <div
-          className="flex bg-approve flex-1 p-4 rounded-lg text-white text-lg font-semibold justify-center cursor-pointer"
+          className="flex flex-1 p-4 rounded-lg text-white text-lg font-semibold justify-center cursor-pointer bg-approve"
+          data-modal-target="static-modal"
+          data-modal-toggle="static-modal"
           onClick={() => {
             if (screen == "1") setScreen("2");
             else {
-              router.push(`/user/loan?phone=${phone}&id=${id}`);
+              consentApprove();
             }
           }}
         >
           {screen == "1" ? "Select accounts" : "One-tap approve"}
         </div>
-        <div className=" bg-reject bg-opacity-20 rounded-lg text-reject  text-lg font-semibold p-4 cursor-pointer">
+        <div
+          className=" bg-reject bg-opacity-20 rounded-lg text-reject  text-lg font-semibold p-4 cursor-pointer"
+          onClick={() => {
+            router.push("/");
+          }}
+        >
           Reject
         </div>
       </div>
@@ -216,13 +243,21 @@ const Banks = (props: {
     update: (accNo: string, value: boolean) => void;
   }) => {
     const selectedCss =
-      "flex p-3 rounded bg-green-100 border-2 border-green-100";
-    const unSelectedCss = "flex border-2 p-3 rounded ";
+      "flex p-3 rounded bg-green-100 border-2 border-green-100 justify-between";
+    const unSelectedCss = "flex border-2 p-3 rounded justify-between";
     return (
       <div className={props.bank.isSelected ? selectedCss : unSelectedCss}>
-        <div className="flex-1 flex flex-col">
-          <div className="text-lg">{props.bank.accNo}</div>
-          <div className="">{props.bank.type}</div>
+        <div className="flex">
+          <div className="flex align-middle mr-4 items-center">
+            <img
+              src="https://companieslogo.com/img/orig/HDB-bb6241fe.png"
+              style={{ width: "18px", height: "18px" }}
+            />
+          </div>
+          <div className="flex flex-1 flex-col">
+            <div className="text-lg">{props.bank.accNo}</div>
+            <div className="">{props.bank.type}</div>
+          </div>
         </div>
         <input
           type="checkbox"
