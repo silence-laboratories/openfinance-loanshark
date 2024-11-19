@@ -65,7 +65,7 @@ jobs:
     needs: [build-fe]
     steps:
       - run: |
-          docker rm -f openfinance-loanshark-demo
+          docker rm -f openfinance-loanshark
           docker run -p 3000:3000 -d --restart always --name openfinance-loanshark ghcr.io/silence-laboratories/openfinance-loanshark-fe:demo
   # deploy-be:
   #   runs-on: openfinance-demo-deployer
