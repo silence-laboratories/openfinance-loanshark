@@ -24,7 +24,7 @@ jobs:
         name: Build and push
         uses: docker/build-push-action@v6
         with:
-          context: "{{defaultContext}}:."
+          context: "{{defaultContext}}:./frontend"
           cache-from: type=registry,ref=ghcr.io/silence-laboratories/openfinance-loanshark-fe:demo
           cache-to: type=inline
           secrets: |
