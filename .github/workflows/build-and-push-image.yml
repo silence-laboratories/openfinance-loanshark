@@ -33,4 +33,4 @@ jobs:
             "BACKEND_URL=${{ secrets.BACKEND_URL }}"
             "CLIENT_URL=${{ secrets.CLIENT_URL }}"
           push: true
-          tags: ghcr.io/silence-laboratories/openfinance-loanshark-be:demo
+          tags: ghcr.io/silence-laboratories/openfinance-loanshark-fe:demo
