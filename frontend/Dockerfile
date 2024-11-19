@@ -4,15 +4,21 @@ WORKDIR /app
 
 COPY package*.json ./
 
-# Install dependencies
 RUN npm install
 
-# Copy the rest of the application files
 COPY . .
 
-# Build the application
+ARG SUPABASE_URL
+ARG SUPABASE_KEY
+ARG BACKEND_URL
+ARG CLIENT_URL
 
-# Expose the port the app runs on
+RUN rm ./src/app/constants.ts && \
+    echo "export const SUPABASE_URL = \"${SUPABASE_URL}\";" > ./src/app/constants.ts && \
+    echo "export const SUPABASE_KEY = \"${SUPABASE_KEY}\";" >> ./src/app/constants.ts && \
+    echo "export const BACKEND_URL = \"${BACKEND_URL}\";" >> ./src/app/constants.ts && \
+    echo "export const CLIENT_URL = \"${CLIENT_URL}\";" >> ./src/app/constants.ts
+
 EXPOSE 3000
-# Start the application
+
 CMD ["npm", "run", "dev"]
