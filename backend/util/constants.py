@@ -29,3 +29,8 @@ MOCK_AA_SCENARIO_FI_FETCH_SUCCESS="fi-fetch-success"
 # Keys for signing the requests - FIU public key and private key generated using mkjwk
 PUBLIC_KEY={}
 PRIVATE_KEY={}
+
+# Setu & OneMoney AA
+SETU_CLIENT_ID=""
+SETU_CLIENT_SECRET=""
+SETU_PRODUCT_INSTANCE_ID=""

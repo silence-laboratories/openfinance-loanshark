@@ -46,13 +46,12 @@ async def make_headers(body, entity_id, scenario_id):
             "x-jws-signature": getXJWSSignature(body),
             "Content-Type": "application/json",
             "client_api_key": await get_access_token(),
-            "x-request-meta": getXRequestMeta(entity_id),
-            "x-scenario-id" : scenario_id
+            "x-request-meta": getXRequestMeta(entity_id)
         }
         return headers
     except Exception as e:
         print(f"Error in make_headers: {e}")
-        return None
+        return jsonify({"error": f"Missing required field: {str(e)}"}), 400
 
 # Helper function to make requests
 async def make_request(endpoint, method, headers, body):
@@ -64,7 +63,18 @@ async def make_request(endpoint, method, headers, body):
         return response_json
     except Exception as e:
         print(f"Error in make_request: {e}")
-        return None
+        return jsonify({"error": f"Missing required field: {str(e)}"}), 400
+
+async def setu_make_request(endpoint, method, headers, body):
+    try:
+        url = f"https://fiu-sandbox.setu.co/v2{endpoint}"
+        async with aiohttp.ClientSession() as session:
+            async with session.request(method, url, headers=headers, json=body) as response:
+                response_json = await response.json()
+        return response_json
+    except Exception as e:
+        print(f"Error in setu_make_request: {e}")
+        return jsonify({"error": f"Missing required field: {str(e)}"}), 400
 
 async def fi_request_handler():
     try:

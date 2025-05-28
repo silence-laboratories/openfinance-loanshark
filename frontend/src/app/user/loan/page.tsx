@@ -79,10 +79,12 @@ export default function Home() {
   };
 
   return (
+    <>
+      <div className="flex justify-center items-center border-b-2 w-screen h-16">
+        <div className="text-2xl">Secure Loans</div>
+      </div>
     <div className="flex flex-col w-screen h-screen justify-center items-center">
       <div className="flex flex-col min-w-80 w-2/5 h-screen mt-10">
-        <div className="text-2xl font-bold">Secure Loans</div>
-        <div className="border-b-2 mt-4 mb-4" />
         {detailsJSON ? (
           <>
             <div className="text-xl font-bold">Loan request submitted</div>
@@ -169,8 +171,9 @@ export default function Home() {
             </svg>
             <span className="sr-only">Loading...</span>
           </div>
-        )}
+          )}
+        </div>
       </div>
-    </div>
+    </>
   );
 }

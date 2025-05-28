@@ -1,92 +1,274 @@
-**Silent Compute: Enhancing Trust and Data Governance in Open Finance with Privacy Preserving Compute and Auditability**
+# Secure Loans
 
-Our solution solves for trust - how to enable, enforce & audit sensitive collaborations over data between participants in Open Finance ecosystem such as Account Agreegator. Exposure of raw customer data to FIUs & TSPs broadens the exposure and misuse surface and creates a trust gap between FIPs & FIUs, resulting in hesitant and limited participation due to insufficient assurance & clarity regarding data usage and privacy concerns.
+### Example flow
+Secure Loans is a loan application platform, a FIU, that integrates with multiple Account Aggregator (AA) services to fetch financial data for loan underwriting.
 
-Silent Compute proposes a secure compute inference model using privacy-enhancing technologies, where FIPs are assured that FIUs can never get access to the raw data. FIUs can just perform compute for consented customer inferences rather than moving the raw data to itself or TSPs. The cryptographic Multi-Party Computation (MPC) protocols as developed in Silent Compute allow FIUs to extract consent-bound insights from encrypted customer’s data, ensuring usage is tied to what the customer has consented for, tackling key challenges like:
+* User lands on the loan request page to provide details of the loan required
+* Secure Loans redirects the user to AA Consent screens to review details and select accounts to share data with FIU
+* Once consent is approved, FIU can now fetch data of the user.
 
-![image](https://github.com/user-attachments/assets/880c769b-1228-415b-b53c-6e88d307f6bd)
+## Integration Types
 
-1. **Privacy-preserving Computing on Encrypted Data from FIPs**: FIUs are vulnerable to single point of failure via data breaches or misuse for non-approved purposes, or compromise with utility for privacy & compliance. Our distributed compute engine eliminates exposure of plaintext raw data to FIUs, ensuring usage aligns with the purpose of data fetch & eliminating risk of data misuse or breach while complying with key privacy principles
+### Setu Integration
+- Uses OneMoney AA for real financial data on sandbox
+- Use a working Indian mobile number for this flow to receive OTPs
+- Supports consent creation and management
+- Handles data sessions and notifications
+- Provides decrypted financial data
 
-- Compute on Encrypted and Sharded Data ( Zero exposure of data in use and no single point of failure): Encrypted data from the FIP is sharded (split into multiple pieces—three in the proposed design) across legally isolated financial information computing nodes, FICUs, before any computation is performed. This ensures that the user's data is never exposed in plaintext to any party other than the FIP and is not stored as a whole with any single entity, thus eliminating a single point of failure. Silent Compute uses a privacy technique called Multi-Party Computation (MPC) to achieve computation on encrypted data, all without any protocol modifications at FIPs or AA.
+### Mock AA Integration
+- Simulates AA behavior for testing
+- You can use any mock mobile number and use `111111` as OTP everywhere
+- Provides predefined test scenarios
+- Includes mock data responses
+- Supports encryption simulation
 
-![image](https://github.com/user-attachments/assets/f6dafcfa-2b27-4e6b-8189-51b8bfc6e29f)
+For a complete understanding, 
 
- <div style="text-align: center;">
-    <figure>
-        <img src="https://github.com/user-attachments/assets/81de190b-d018-4e85-8914-fb0f7a8c4bda" alt="Image 124 width="200"/>
-        <figcaption>Secret sharing of ciphertext E across multiple nodes </figcaption>
-    </figure>
-</div>
+- Run the services with Setu integration to understand the how the end-user will interact with AA and how the data fetch happens
+- Once done, run the services with Mock AA integration to understand the end-to-end data fetch flow by running APIs in Postman.
+- All the necessary information is given below to run these different integrations.
 
-2. **Governance & auditability via verifiable consent**: The involvement of multiple entities, including certain unregulated participants like TSPs makes it difficult to establish clear guidelines for accountability. Furthermore, lack of transparency of data usage creates trust gaps with users. Silent Compute enhances governance & reinforces purpose limitation by marrying consent & computation to enforce consent terms in the usage of data.
+## Services Used
 
-- Binding Consent with Inference ( Purpose limitation-transparency and auditability): Consent is registered in form of signing of decomposed sequences of purpose-bound operation codes. Any financial inference by the FIU is performed only if the opcode sequence for the corresponding logic can be proved and verified by the consent prover. Thus, Silent Compute enables end-to-end verifiable consent that is tightly coupled with computations."
+### Supabase
+Supabase is used as a simple database for user and data management
 
-3. **Balancing socio-economic incentives**: FIUs & TSPs derive substantial value by utilising data to offer personalised services. However, FIPs and AAs do not equally share these benefits. A more equitable distribution of the value generated can be brought by a usage-based compensation model, incentivising better performance & availability from FIPs having financial outcomes directly linked directly to the quality of their service.
+#### Setup
 
-4. **Consesnsus for Inference:** Additionally, no single party (FIU, AA, Sahamati) can operate on user data without the permission of the other two parties. This restriction is enforced cryptographically, as user data remains entirely undefined within the scope of any individual party's view—requiring two or more parties to actively cooperate to unlock the data.
+Create a project on Supabase. You can [follow this guide](https://supabase.com/docs/guides/api/quickstart) to setup Supabase
 
-![image](https://github.com/user-attachments/assets/f6dafcfa-2b27-4e6b-8189-51b8bfc6e29f)
+Create two tables `encryption_keys` and `user`
 
-Figure, above, shows the revised workflow of financial information request. Our proposal is to _distribute_ the storage of the key ephemeral key, $\mathsf{sk}$, amongst Financial Information Compute Unit (FICU) nodes. In practice, as an example in context of this white paper, these compute nodes can be operated by AA, FIU, and Sahamati, each running one instance. Let's see the adaptations in context of the existing workflow.
+```sql
+create table public.encryption_keys (
+  created_at timestamp with time zone not null default now(),
+  fiu_encryption_key jsonb null,
+  fip_encryption_key jsonb null,
+  is_data_ready boolean null,
+  session_id uuid not null,
+  fiu_private_key jsonb null,
+  constraint encryption_keys_pkey primary key (session_id),
+  constraint encryption_keys_session_id_key unique (session_id)
+) TABLESPACE pg_default;
+```
 
-- **A. Initiating a Data Request with Distributed Key Generation (DKG):**
-  As shown in Figure 14, after the user’s consent is obtained, the FIU sends a Financial Information (FI) request to the AA to retrieve the data from the relevant FIPs. This request contains the details of the data required (such as bank account statements, loan details, etc.). The Data Request comprises the details of the consent and key material ($\mathsf{pk}$) that is to be shared with the FIP to encrypt the data sent in response. The Data Request is digitally signed by the FIU. As shown in Figure 14, FICU nodes perform DKG to generate an ephemeral Curve 25519 Key Pair comprising the FIU public key, ($\mathsf{pk}$), and the FIU distributed private key shares ($\mathsf{sk}_1,\mathsf{sk}_2,\mathsf{sk}_3$). These keys are valid only for one data exchange session. The key shares as equivalent to $\mathsf{sk}$ splitting into secret shares $\mathsf{sk}_1,\mathsf{sk}_2,\mathsf{sk}_3$. The parameters of the secret sharing based DKG are set so that no individual $\mathsf{sk}_i$ reveals _any information at all_ about $k$ itself, and any pair of shares $\mathsf{sk}_i,\mathsf{sk}_j$ fully specify $\mathsf{sk}$.
-  This ensures that any party who wishes to reconstruct $\mathsf{sk}$ (and therefore any data it encrypts) will need to convince another party to collude with it.
+```sql
+create table public.user (
+  id bigint generated by default as identity not null,
+  created_at timestamp with time zone not null default now(),
+  name character varying null,
+  amount character varying null,
+  phone text null,
+  purpose character varying null,
+  "loanStatus" text null,
+  "consentHandle" text null,
+  "bankAccounts" jsonb null,
+  constraint user_pkey primary key (id)
+) TABLESPACE pg_default;
+```
 
-**Secret sharing** refers to methods for securely distributing a secret among a group of parties. The guarantee is that no individual party holds any intelligible information about the secret, but when a sufficient number of parties combine their 'shares', the secret can be reconstructed. While secret sharing offers secure storage, MPC protocols offer a method to _use_ the underlying secret for a computation without having to reconstruct it—at every intermediate stage of the MPC, all sensitive state remains secret shared.
-:::
+##### Configuration:
 
-- **B. Distributed Decryption:** As further adaption, shown in Figure 14, upon transmission of the ciphertext $E$, the FICU nodes engage in an MPC protocol to jointly decrypt $E$ and obtain secret shares of $d$: $d_1,d_2,d_3$ as their respective private outputs.
+Use the below configuration in constants of both frontend (constants.ts) and backend (constants.py) repos
 
- <div style="text-align: center;">
-    <figure>
-        <img src="https://hackmd.io/_uploads/B1rS3Z6yJx.png" alt="Image 124 width="320"/>
-        <figcaption>Secret sharing of ciphertext E across multiple nodes </figcaption>
-    </figure>
-</div>
+```
+SUPABASE_URL=your_supabase_url
+SUPABASE_KEY=your_supabase_key
+```
 
-Although "MPC-Decryption" is depicted as an idealized trusted third party in the above diagram, in reality this functionality is emulated by means of a distributed protocol. In particular, $d_1,d_2,d_3$ are computed and delivered as private outputs to each of the nodes, while leaking no information about $\mathsf{sk}_1,\mathsf{sk}_2,\mathsf{sk}_3$.
+### AA Integration
 
-- **C. Secure Distributied Multi-Party Computation:** Subsequent to this distributed decryption of $d$, each query upon the dataset is answered in a distributed fashion as well, without physically reconstructing $d$ at any single place. In particular, to compute a function $f(d)$ upon the data, FICU nodes run an MPC protocol (using $d_1,d_2,d_3$ as private inputs) at the end of which they output $f(d)$, while leaking no additional information about $d$ to each other.
+This repo consists of multiple AA integrations on Sandbox to help understand the flow better.
 
-Recall the diagram from the previous section that described the flow of information in the Account Aggregator ecosystem. With our new MPC-enabled data processing and governance framework, the FIU's side of the diagram is further decentralized, as depicted below:
+To facilitate switching between these integration, update the `.env` in the frontend repo with respective integration type
 
- <div style="text-align: center;">
-    <figure>
-        <img src="https://hackmd.io/_uploads/SyCsysak1e.png" alt="Image 15" width="320"/>
-        <figcaption>Computation of f(d) without reconstructing d at a single place </figcaption>
-    </figure>
-</div>
+#### 1. Setu Integration
+Setu provides integration with OneMoney AA for fetching financial data
 
-This system allows for AA, FIU, and Sahamati nodes to securely store the data in a decentralized fashion, and unlock computations on it as relevant and consented to by the user/data principal. A non-compliant node is prevented from accessing any information about the user data if other nodes do not explicitly agree. In combination with a robust consent management framework, the new MPC-enabled design is able to deliver strong cryptographic guarantees for binding computation on user data with consent.
+##### Setup
 
- <div style="text-align: center;">
-    <figure>
-        <img src="https://hackmd.io/_uploads/H19TGB4AC.png" alt="Image 17" width="320"/>
-        <figcaption>Preventing access of input information in case of a rogue data use attempt </figcaption>
-    </figure>
-</div>
+Get your credentials from Setu:
 
-## Integrating with Sahamati
+You can [follow this guide](https://docs.setu.co/data/account-aggregator/quickstart) to setup an account with Setu and get your credentials
 
-`silence-fiu` is a registered FIU entity with Sahamati Proxy
+   - Client ID
+   - Client Secret
+   - Product Instance ID
 
-We create a mock AA, `slience-aa-mock` to simulate all the responses of AA via Simulator
+Configure the following constants in `constants.py`:
+   ```env
+   SETU_CLIENT_ID=your_client_id
+   SETU_CLIENT_SECRET=your_client_secret
+   SETU_PRODUCT_INSTANCE_ID=your_product_instance_id
+   ```
 
-`constants.py` file in util folder needs to upadted with relevant details of the FIU that is testing.
+Notification endpoint:
+
+You need to provide a notification endpoint to Setu to receive notifications for different stages. You can use [Hookdeck Console](https://console.hookdeck.com/) to setup a webhook listener and add that in Setu config.
+
+We have a `/notification-setu` route in our backend to facilitate next steps when testing locally. You can simulate these notifications, by calling the `/notification-setu` endpoint with the received notification payload from Hookdeck.
+
+##### Features
+- Consent creation and management
+- Data session handling
+- Real-time notifications for consent and session status updates
+- Support for profile, summary, and transaction data types
+
+#### 2. Mock AA Integration
+`silence-fiu` is a registered FIU entity with SahamatiNet
+
+We create a mock AA, `slience-aa-mock` to simulate all the responses of AA via Simulator with mock data to facilitate end-to-end testing
+
+`constants.py` file in util folder needs to be updated with relevant details of the FIU that is testing.
 
 `CLIENT_ID`, `CLIENT_SECRET`, `PUBLIC_KEY`, `PRIVATE_KEY` , `USERNAME` and `PASSWORD` needs to filled with relevant details of a FIU.
 
-## Demo
+The above details can be obtained by registering on SahamatiNet sandbox and registering a FIU entity on sandbox. You can read more about it [here](https://developer.sahamati.org.in/sahamatinet-poc/integration-steps/sandbox-onboarding)
 
-User flow, looks best in mobile view
+##### Features
+- Simulated consent flow
+- Mock data responses
+- Test scenarios for different API endpoints
+- Encryption key management
 
-- Open https://loanshark.silencelaboratories.com/
+Documentation for Mock AA APIs
 
-Admin flow
+##### Create Consent API
 
-- Once the consent is approved,
-- Open https://loanshark.silencelaboratories.com/admin
-- In a new tab, click the user and approve
+Endpoint: `/api/v1/create-consent`
+
+Method: POST
+
+Description: This endpoint is used to create a consent request. It requires no input from the client as the body is generated within the function.
+Response: Returns the consent handle of the consent
+
+##### Consent Handle API:
+
+Endpoint: `/api/v1/consent-handle`
+
+Method: POST
+
+Description: This endpoint processes a consent handle. The request body must include a consentHandle.
+Response: Returns the consent details along with the consentId
+
+##### Consent Fetch API
+
+Endpoint: `/api/v1/consent-fetch`
+
+Method: POST
+
+Description: This endpoint fetches consent details. The request body must include a consentId.
+Response: Returns the consent details with the consentId and digitalSignature
+
+##### FI Request API
+
+Endpoint: `/api/v1/fi-request`
+
+Method: POST
+
+Description: This endpoint initiates a financial information (FI) request. The request body must include a consentId and a digitalSignature. We generate the FIP encryption key and sessionId. We save them in a DB table with sessionID being the primary key. Using these values, update the mock response for this scenario
+Response: Returns the FI request response.
+
+##### FIP Encryption API
+
+Endpoint: `/api/v1/fip-encrypt`
+
+Method: POST
+
+Description: This endpoint is used for FIP encryption. The request body must include a sessionId. This replicates the encryption done by the FIP. We generate the FIP encryption key and fetch FIU encryption key from the DB based on sessionID. Use the keys to generate a encrypted payload and update the mock response for this scenario.
+Response: Returns a status indicating encryption success.
+
+##### FI Fetch API
+
+Endpoint: `/api/v1/fi-fetch`
+
+Method: POST
+
+Description: This endpoint fetches financial information. The request body must include a sessionId.
+Response: Returns the FI fetch response.
+
+##### FIU Decrypt API
+
+Endpoint: `/api/v1/fiu-decrypt`
+
+Method: POST
+
+Description: This endpoint decrypts financial information. The request body must include a sessionId and encryptedFI. This replicates the decryption done by the FIU. This fetches the FIP and FIU keys from the DB based on sessionId to perform decryption.
+Response: Returns the decrypted XML data.
+
+
+Sequence of making API calls
+
+Step 1: Make a request to the Create Consent API to initiate a consent request.
+Step 2: Use the consent handle received from the previous step to make a POST request to the Consent Handle API.
+Step 3: Fetch the consent details using the Consent Fetch API.
+Step 4: Initiate an FI request using the FI Request API with the necessary consent details (consentId and digitalSignature).
+Step 5: Encrypt the FI data using the FIP Encryption API.
+Step 6: Fetch the encrypted FI data using the FI Fetch API.
+Step 7: Finally, decrypt the FI data using the FIU Decrypt API
+
+You can find the Postman collection and environment [here](https://documenter.getpostman.com/view/13895199/2sB2qdh1Bq)
+
+## Project Structure
+
+### Frontend
+- Next.js application
+- Supabase client integration
+- Dynamic consent flow UI
+- Admin dashboard for loan management
+
+### Backend
+- Flask API server
+- Integration with Setu and Mock AA services
+- Encryption handling
+- Session management
+
+## Setup Instructions
+
+### Frontend Setup
+1. Install dependencies:
+   ```bash
+   cd frontend
+   npm install
+   ```
+
+2. Configure environment variables:
+   ```env
+   NEXT_PUBLIC_INTEGRATION_TYPE=SETU  # or MOCK
+   SUPABASE_URL=your_supabase_url
+   SUPABASE_KEY=your_supabase_key
+   BACKEND_URL=your_backend_url
+   ```
+
+3. Run the development server:
+   ```bash
+   npm run dev
+   ```
+
+### Backend Setup
+1. Create and activate virtual environment:
+   ```bash
+   cd backend
+   python3 -m venv .fiu
+   source .fiu/bin/activate
+   ```
+
+2. Install dependencies:
+   ```bash
+   pip install -r requirements.txt
+   ```
+
+3. Run the server:
+   ```bash
+   python main.py
+   ```
+
+## Security
+- All API keys and secrets should be stored securely
+- Use environment variables for sensitive data
+- Implement proper encryption for data transfer
+- Follow security best practices for key management
+
+## License
+MIT License

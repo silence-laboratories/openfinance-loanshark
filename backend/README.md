@@ -1,4 +1,4 @@
-# FIU modules
+# Backend service
 
 ## Requirements
 
@@ -23,26 +23,10 @@ pip install -r requirements.txt
 
 > Note : Replace necessary values on `util/constants.py` file
 
-To run your app, first you need to set a environment variable called `FLASK_APP`  
-and its value is the name of your file where your app is (`main.py` in this case).  
-Optionally you can set the _debug mode_ for developing suing `FLASK_DEBUG` env var to 1.
+Run your app:
 
 ```bash
-export FLASK_APP=main.py
-export FLASK_DEBUG=1
-```
-
-Check the env var:
-
-```bash
-echo $FLASK_APP
-$ main.py
-```
-
-And then you can run your app:
-
-```bash
-flask run
+python main.py
 ```
 
 And it outputs something like:
