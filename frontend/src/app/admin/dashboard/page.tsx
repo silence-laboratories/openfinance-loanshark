@@ -4,7 +4,8 @@ import RiskIndicator from "../../_components/riskIndicator";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { createClient } from "@supabase/supabase-js";
-import { SUPABASE_KEY, SUPABASE_URL, CLIENT_URL } from "../../constants";
+import { SUPABASE_KEY, SUPABASE_URL, CLIENT_URL, BACKEND_URL } from "../../constants";
+import StepProgress from './StepProgress';
 
 const supabaseUrl = SUPABASE_URL;
 const supabaseKey = SUPABASE_KEY;
@@ -56,31 +57,31 @@ export default function Dashboard() {
     info: string;
     infoType: "green" | "yellow" | "red";
   }[] = [
-    {
-      title: "Financial obligation ratio",
-      value: "12%",
-      info: "Healthy",
-      infoType: "green",
-    },
-    {
-      title: "Total outward cheque bounce",
-      value: "3",
-      info: "Cheque bounce is a sign of danger",
-      infoType: "red",
-    },
-    {
-      title: "Total cash withdrawals",
-      value: "₹ 92,472",
-      info: "Withdrawal to deposit ratio too low.",
-      infoType: "yellow",
-    },
-    {
-      title: "Total cash deposits",
-      value: "₹ 1,22,472",
-      info: "Withdrawal to deposit ratio too low.",
-      infoType: "yellow",
-    },
-  ];
+      {
+        title: "Financial obligation ratio",
+        value: "12%",
+        info: "Healthy",
+        infoType: "green",
+      },
+      {
+        title: "Total outward cheque bounce",
+        value: "3",
+        info: "Cheque bounce is a sign of danger",
+        infoType: "red",
+      },
+      {
+        title: "Total cash withdrawals",
+        value: "₹ 92,472",
+        info: "Withdrawal to deposit ratio too low.",
+        infoType: "yellow",
+      },
+      {
+        title: "Total cash deposits",
+        value: "₹ 1,22,472",
+        info: "Withdrawal to deposit ratio too low.",
+        infoType: "yellow",
+      },
+    ];
 
   const endOfDayBalances = [
     ["", "Balance"],
@@ -122,14 +123,9 @@ export default function Dashboard() {
           <div className="text-2xl font-bold">Secure Loans Admin</div>
         </div>
         <div className="border-b-2 mt-4 mb-4" />
-        <div className="text-base mt-8"> CUSTOMER PROFILE</div>
         {details ? (
           <>
             <div className="flex mt-4 space-x-4 ">
-              <CustomerProfile
-                name={details[0].name}
-                banks={details[0].bankAccounts}
-              />
               <LoanApproveReject
                 reason={reviewParams.reason}
                 amount={details[0].amount}
@@ -138,18 +134,32 @@ export default function Dashboard() {
                 phone={details[0].phone}
                 id={details[0].id}
                 status={details[0].loanStatus}
+                name={details[0].name}
+                consentHandle={details[0].consentHandle}
               />
-            </div>
-            <Balances {...balances} />
-            <ExpenseGraphs
-              endOfDayBalances={endOfDayBalances}
-              endOfMonthBalances={endOfMonthBalances}
+              {/* Vertical divider */}
+              <div className="border-r-2 h-full" />
+              <ConsentStepsProcess
+              consentHandle={details[0].consentHandle}
+              id={details[0].id}
+              phone={details[0].phone}
             />
-            <RiskIndicator riskIndicators={riskIndicators} />
-            <div className="mt-8 flex space-x-4">
-              <TransactionBehaviour />
-              <CreditDebitsTxn />
             </div>
+            
+            {details[0].loanStatus === "APPROVED" && (
+              <div>
+                <Balances {...balances} />
+                <ExpenseGraphs
+                  endOfDayBalances={endOfDayBalances}
+                  endOfMonthBalances={endOfMonthBalances}
+                />
+                <RiskIndicator riskIndicators={riskIndicators} />
+                <div className="mt-8 flex space-x-4">
+                  <TransactionBehaviour />
+                  <CreditDebitsTxn />
+                </div>
+              </div>
+            )}
           </>
         ) : (
           <div role="status" className="mt-6">
@@ -220,9 +230,9 @@ const CustomerProfile = (props: {
     <div className="flex-1">
       <UserCard />
       <div className="mt-6 text-sm">Accounts selected</div>
-      {props.banks.map((b) => {
+      {/* {props.banks.map((b) => {
         return <BankCard {...b} />;
-      })}
+      })} */}
     </div>
   );
 };
@@ -258,6 +268,8 @@ const LoanApproveReject = (props: {
   phone: string;
   id: string;
   status: string;
+  name: string;
+  consentHandle: string;
 }) => {
   const router = useRouter();
 
@@ -272,7 +284,6 @@ const LoanApproveReject = (props: {
       router.push("/admin");
     }
   };
-
   const DetailRow = (props: { title: string; value: string }) => {
     return (
       <div className="flex mt-2 justify-between">
@@ -284,15 +295,20 @@ const LoanApproveReject = (props: {
     );
   };
   return (
-    <div className="flex-1 flex flex-col bg-white p-3  rounded-lg">
-      <div className="text-sm mb-2">Purpose</div>
-      <div className="self-start text-xs bg-bg4 p-2 rounded mb-6">
-        {props.reason}
-      </div>
-      <DetailRow title={"AMOUNT"} value={props.amount} />
-      <DetailRow title={"DATE"} value={props.date} />
-      <DetailRow title={"PURPOSE"} value={props.purpose} />
-      <div className="flex space-x-4 mt-4">
+      <div className="flex-2 flex flex-col p-3 rounded-lg">
+      <h3 className="text-lg font-semibold mb-4">Customer Profile</h3>
+        <div className="text-sm mb-2">Name</div>
+        <div className="self-start text-xs bg-bg4 p-2 rounded mb-6">
+          {props.name}
+        </div>
+        <div className="text-sm mb-2">Purpose</div>
+        <div className="self-start text-xs bg-bg4 p-2 rounded mb-6">
+          {props.reason}
+        </div>
+        <DetailRow title={"AMOUNT"} value={props.amount} />
+        <DetailRow title={"DATE"} value={props.date} />
+        <DetailRow title={"PURPOSE"} value={props.purpose} />
+        <div className="flex space-x-4 mt-4">
         {props.status === "PENDING" ? (
           <>
             <div
@@ -317,8 +333,8 @@ const LoanApproveReject = (props: {
             Rejected
           </div>
         )}
+        </div>
       </div>
-    </div>
   );
 };
 
@@ -398,3 +414,215 @@ const ExpenseGraphs = (props: {
     </div>
   );
 };
+
+const ConsentStepsProcess = (props: {
+  consentHandle: string;
+  id: string;
+  phone: string;
+}) => {
+  const steps = [
+    {
+      id: "fetch-consent",
+      title: "Fetch Consent Details",
+      description: "Retrieving consent information from Account Aggregator",
+      apiCall: async (previousResults: any[]) => {
+        const response = await fetch(`${BACKEND_URL}/api/v1/consent-handle`, {
+          method: "POST",
+          body: JSON.stringify({ consentHandle: props.consentHandle }),
+          headers: {
+            "Content-Type": "application/json",
+          },
+        });
+        const resData = await response.json();
+        
+        // Update database
+        await supabase
+          .from("user")
+          .update({ consentStatus: resData["ConsentStatus"]["status"] })
+          .eq("id", props.id);
+          
+        return {
+          consentId: resData["ConsentStatus"]["id"],
+          status: resData["ConsentStatus"]["status"]
+        };
+      }
+    },
+    {
+      id: "fetch-signature",
+      title: "Fetch Digital Signature",
+      description: "Getting digital signature for the consent",
+      apiCall: async (previousResults: any[]) => {
+        // Get consentId from the first step result
+        const consentId = previousResults[0]?.consentId;
+        
+        if (!consentId) {
+          throw new Error("Consent ID not found from previous step");
+        }
+        
+        const response = await fetch(`${BACKEND_URL}/api/v1/consent-fetch`, {
+          method: "POST",
+          body: JSON.stringify({ consentId: consentId }),
+          headers: {
+            "Content-Type": "application/json",
+          },
+        });
+        const resData = await response.json();
+        
+        return {
+          digitalSignature: resData["signedConsent"].split('.').slice(2)[0],
+          consentId: consentId // Pass it along for the next step
+        };
+      }
+    },
+    {
+      id: "request-data",
+      title: "Request Financial Data",
+      description: "Requesting financial data from Account Aggregator",
+      apiCall: async (previousResults: any[]) => {
+        // Get data from previous steps
+        const consentId = previousResults[0]?.consentId;
+        const digitalSignature = previousResults[1]?.digitalSignature;
+        
+        if (!consentId || !digitalSignature) {
+          throw new Error("Required data not found from previous steps");
+        }
+        
+        const response = await fetch(`${BACKEND_URL}/api/v1/fi-request`, {
+          method: "POST",
+          body: JSON.stringify({ 
+            consentId: consentId, 
+            digitalSignature: digitalSignature
+          }),
+          headers: {
+            "Content-Type": "application/json",
+          },
+        });
+        const resData = await response.json();
+        
+        // Update database
+        await supabase
+          .from("user")
+          .update({ 
+            dataStatus: "REQUESTED", 
+            sessionId: resData["sessionId"] 
+          })
+          .eq("id", props.id);
+          
+        return {
+          sessionId: resData["sessionId"]
+        };
+      }
+    },
+    {
+      id: "wait-for-data",
+      title: "Wait for financial data",
+      description: "Polling database to see if financial data is received",
+      apiCall: async (previousResults: any[]) => {
+        const maxAttempts = 60; // 5 minutes timeout (60 attempts * 5 seconds)
+        let attempts = 0;
+        
+        const pollForData = async (): Promise<any> => {
+          attempts++;
+          
+          // Query the user table to check linkRefNumbers
+          const { data: userData, error } = await supabase
+            .from("user")
+            .select("linkRefNumbers")
+            .eq("id", props.id)
+            .single();
+          
+          if (error) {
+            throw new Error(`Database query failed: ${error.message}`);
+          }
+          
+          // Check if linkRefNumbers is not empty
+          if (Array.isArray(userData.linkRefNumbers) && userData.linkRefNumbers.length > 0) {
+            // Update the parent component with fresh data
+            return {
+              linkRefNumbers: userData.linkRefNumbers,
+              attempts: attempts,
+              message: `Data received after ${attempts} attempts (${attempts * 5} seconds)`
+            };
+          }
+          
+          // Check if we've exceeded max attempts
+          if (attempts >= maxAttempts) {
+            throw new Error(`Timeout: Data not received after ${maxAttempts * 5} seconds`);
+          }
+          
+          // Wait 5 seconds before next attempt
+          await new Promise(resolve => setTimeout(resolve, 5000));
+          
+          // Recursive call to poll again
+          return pollForData();
+        };
+        
+        return await pollForData();
+      }
+    },
+    {
+      id: "fetch-data",
+      title: "Fetch Financial Data",
+      description: "Fetching financial data from Account Aggregator",
+      apiCall: async (previousResults: any[]) => {
+        // Get data from previous steps
+        const sessionId = previousResults[2]?.sessionId;
+        const linkRefNumber = previousResults[3]?.linkRefNumbers[0];
+        
+        if (!sessionId) {
+          throw new Error("Required data not found from previous steps");
+        }
+        
+        const response = await fetch(`${BACKEND_URL}/api/v1/fi-fetch`, {
+          method: "POST",
+          body: JSON.stringify({ 
+            sessionId: sessionId, 
+            linkRefNumber: linkRefNumber
+          }),
+          headers: {
+            "Content-Type": "application/json",
+          },
+        });
+        const resData = await response.json();
+        
+        // Update database
+        await supabase
+          .from("user")
+          .update({ 
+            dataStatus: "REQUESTED", 
+            sessionId: resData["sessionId"] 
+          })
+          .eq("id", props.id);
+          
+        return resData;
+      }
+    },
+  ];
+
+  const handleComplete = (results: any[]) => {
+    console.log("All steps completed:", results);
+    // Handle completion - you now have all results from all steps
+    // The last result will contain the linkRefNumbers data
+  };
+
+  const handleError = (error: any, stepIndex: number) => {
+    console.error(`Error in step ${stepIndex}:`, error);
+    // Handle error
+  };
+
+  return (
+    <div className="p-4 mb-4">
+      <h3 className="text-lg font-semibold mb-4">Data Fetching Process</h3>
+      <div className="text-sm mb-4">Consent Handle : <span className="text-xs bg-bg4 p-2 rounded"><strong>{props.consentHandle}</strong></span></div>
+      <div className="border-b-2 border-gray-300 my-4 mb-4"></div>
+      <StepProgress
+        steps={steps}
+        onComplete={handleComplete}
+        onError={handleError}
+        autoStart={false}
+      />
+    </div>
+  );
+};
+
+

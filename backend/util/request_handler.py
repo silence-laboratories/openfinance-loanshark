@@ -6,7 +6,7 @@ import aiohttp
 
 from util.jws import create_jws
 from util.sahamati import get_access_token, update_mock_response
-from util.constants import SAHAMATI_BASEPATH, SUPABASE_URL, SUPABASE_KEY, MOCK_AA_ENTITY_ID
+from util.constants import SAHAMATI_BASEPATH, SUPABASE_URL, SUPABASE_KEY, AA_ENTITY_ID, FINVU_BASEPATH
 from util.encryption import get_encryption_key, encrypt_data, get_encryption_key_from_rust
 from util.timestamp import datetime_now
 
@@ -40,13 +40,18 @@ def getXJWSSignature(payload):
         return None
 
 # Helper function to make headers
-async def make_headers(body, entity_id, scenario_id):
+async def make_headers(body):
     try:
+        # headers = {
+        #     "x-jws-signature": getXJWSSignature(body),
+        #     "Content-Type": "application/json",
+        #     "client_api_key": await get_access_token(),
+        #     "x-request-meta": getXRequestMeta(entity_id)
+        # }
         headers = {
             "x-jws-signature": getXJWSSignature(body),
             "Content-Type": "application/json",
             "client_api_key": await get_access_token(),
-            "x-request-meta": getXRequestMeta(entity_id)
         }
         return headers
     except Exception as e:
@@ -56,24 +61,13 @@ async def make_headers(body, entity_id, scenario_id):
 # Helper function to make requests
 async def make_request(endpoint, method, headers, body):
     try:
-        url = f"{SAHAMATI_BASEPATH}{endpoint}"
+        url = f"{FINVU_BASEPATH}{endpoint}"
         async with aiohttp.ClientSession() as session:
             async with session.request(method, url, headers=headers, json=body) as response:
                 response_json = await response.json()
         return response_json
     except Exception as e:
         print(f"Error in make_request: {e}")
-        return jsonify({"error": f"Missing required field: {str(e)}"}), 400
-
-async def setu_make_request(endpoint, method, headers, body):
-    try:
-        url = f"https://fiu-sandbox.setu.co/v2{endpoint}"
-        async with aiohttp.ClientSession() as session:
-            async with session.request(method, url, headers=headers, json=body) as response:
-                response_json = await response.json()
-        return response_json
-    except Exception as e:
-        print(f"Error in setu_make_request: {e}")
         return jsonify({"error": f"Missing required field: {str(e)}"}), 400
 
 async def fi_request_handler():
@@ -88,7 +82,7 @@ async def update_fi_request_mock_response(session_id, scenario_id):
     try:
         print("Session in mock FI request", session_id)
         payload = {
-            "entityId": MOCK_AA_ENTITY_ID,
+            "entityId": AA_ENTITY_ID,
             "endpoint": "/FI/request",
             "responseCode": 200,
             "scenario": scenario_id,
@@ -111,10 +105,9 @@ async def update_fi_fetch_mock_response(session_id, scenario_id):
         fip_encryption_key = await get_encryption_key()
         response = supabase.table("encryption_keys").upsert({"session_id": session_id, "fip_encryption_key": fip_encryption_key}).execute()
         fiu_encryption_key = response.data[0]["fiu_encryption_key"]
-        print(fip_encryption_key)
         encrypted_data = await encrypt_data(fiu_encryption_key, fip_encryption_key["KeyMaterial"], fip_encryption_key["privateKey"], xml_data)
         payload = {
-            "entityId": MOCK_AA_ENTITY_ID,
+            "entityId": AA_ENTITY_ID,
             "endpoint": "/FI/fetch",
             "responseCode": 200,
             "scenario": scenario_id,

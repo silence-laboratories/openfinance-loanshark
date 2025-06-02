@@ -20,68 +20,40 @@ export default function Home() {
 
   const submitConsent = async () => {
     setIsLoading(true);
-    if (process.env.NEXT_PUBLIC_INTEGRATION_TYPE === "SETU") {
-      let body = {
-        "phone": phone,
-      };
-      try {
-        const response = await fetch(`${BACKEND_URL}/api/v1/create-consent-setu`, {
-          method: "POST",
-          body: JSON.stringify(body),
-          headers: {
-            "Content-Type": "application/json",
-          },
-        });
+    let body = {
+      name,
+      phone,
+      amount: selectedAmount,
+      purpose: selectedPurpose,
+      loanStatus: "PENDING",
+    };
 
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
+    try {
+      const response = await fetch(`${BACKEND_URL}/api/v1/create-consent-loanshark`, {
+        method: "POST",
+        body: JSON.stringify(body),
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
 
-        const result = await response.json();
-
-        if (!result.url) {
-          console.error('No URL in response:', result);
-          throw new Error('No redirect URL in response');
-        }
-        const { data, error } = await supabase
-          .from("user")
-          .insert([
-            {
-              name,
-              phone,
-              amount: selectedAmount,
-              purpose: selectedPurpose,
-              loanStatus: "PENDING",
-              consentHandle: result.id
-            },
-          ])
-          .select();
-        if (data) {
-          window.location.href = result.url;
-        }
-      } catch (error) {
-        console.error('Error in submitConsent:', error);
-        setIsLoading(false);
-        // Optionally show an error message to the user
-        alert('Failed to create consent. Please try again.');
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
       }
-    } else {
-      const { data, error } = await supabase
-        .from("user")
-        .insert([
-          {
-            name,
-            phone,
-            amount: selectedAmount,
-            purpose: selectedPurpose,
-            loanStatus: "PENDING",
-            consentHandle: "b6d7a54a-6150-4fe7-a556-d37763720bcd",
-          },
-        ])
-        .select();
-      if (data) {
-        router.push(`/user/consent?phone=${phone}&id=${data[0].id}`);
+
+      const result = await response.json();
+
+      if (!result.url) {
+        console.error('No URL in response:', result);
+        throw new Error('No redirect URL in response');
       }
+      
+      window.location.href = result.url;
+    } catch (error) {
+      console.error('Error in submitConsent:', error);
+      setIsLoading(false);
+      // Optionally show an error message to the user
+      alert('Failed to create consent. Please try again.');
     }
   };
 

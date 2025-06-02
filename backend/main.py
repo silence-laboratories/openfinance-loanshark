@@ -6,22 +6,23 @@ from flask import Flask, jsonify, request, Blueprint
 from flask_cors import CORS, cross_origin
 
 # Utils
-from util.timestamp import datetime_now, get_expiry_datetime
+from util.timestamp import datetime_now
 
 # Constants
-from util.constants import MOCK_AA_ENTITY_ID, MOCK_AA_ENTITY_HANDLE, SETU_PRODUCT_INSTANCE_ID
-
-# Mock AA Scenarios
-from util.constants import MOCK_AA_SCENARIO_CREATE_CONSENT_SUCCESS, MOCK_AA_SCENARIO_CONSENT_HANDLE_SUCCESS, MOCK_AA_SCENARIO_CONSENT_FETCH_SUCCESS, MOCK_AA_SCENARIO_FI_REQUEST_SUCCESS, MOCK_AA_SCENARIO_FI_FETCH_SUCCESS
-
-# Request handler
-from util.request_handler import make_headers, make_request, fi_request_handler, setu_make_request, update_fi_request_mock_response, update_fi_fetch_mock_response
+from util.constants import  SUPABASE_URL, SUPABASE_KEY, AA_REDIRECT_URL
 
 # Encryption
-from util.encryption import process_encrypted_data, process_insights
+from util.encryption import process_insights
 
-# Setu
-from util.setu import get_setu_access_token
+from util.web_redirection import build_url
+
+from supabase import create_client, Client
+
+from util.aa import consent_handle_request, consent_fetch_request, consent_create_request, fi_request_request, fi_fetch_request
+
+url: str = SUPABASE_URL
+key: str = SUPABASE_KEY
+supabase: Client = create_client(url, key)
 
 app = Flask(__name__)
 api_v1 = Blueprint('api_v1', __name__, url_prefix='/api/v1')
@@ -37,45 +38,30 @@ def hello():
     except Exception as e:
         return jsonify({"error": f"An unexpected error occurred: {str(e)}"}), 500
 
-
-##### MOCK AA APIs
+##### Postman APIs
 
 # Create consent API
 @api_v1.route('/create-consent', methods=['POST'])
 # @cross_origin()
 async def consent():
     try:
-        body = {
-            "ver": "2.0.0",
-            "timestamp": datetime_now(),
-            "txnid": str(uuid.uuid4()),
-            "ConsentDetail": {
-                "consentStart": datetime_now(),
-                "consentExpiry": get_expiry_datetime(),
-                "consentMode": "VIEW",
-                "fetchType": "ONETIME",
-                "consentTypes": ["PROFILE", "SUMMARY", "TRANSACTIONS"],
-                "fiTypes": ["DEPOSIT"],
-                "DataConsumer": {"id": "silence-aa", "type": "FIU"},
-                "Customer": {
-                    "id": f"7032523251@{MOCK_AA_ENTITY_HANDLE}",
-                },
-                "Purpose": {
-                    "code": "101",
-                    "refUri": "https://api.rebit.org.in/aa/purpose/101.xml",
-                    "text": "Wealth management service",
-                    "Category": {"type": "string"}
-                },
-                "FIDataRange": {"from": "2023-07-06T11:39:57.153Z", "to": "2023-12-06T11:39:57.153Z"},
-                "DataLife": {"unit": "YEAR", "value": 1},
-                "Frequency": {"unit": "DAY", "value": 24},
-            }
-        }
-        print(body)
-        headers = await make_headers(body, MOCK_AA_ENTITY_ID, MOCK_AA_SCENARIO_CREATE_CONSENT_SUCCESS)
-        print(headers)
-        consent = await make_request('/router/v2/Consent', 'POST', headers, body)
-        return consent
+        request_body = request.json
+        phone = request_body["phone"]
+        return await consent_create_request(phone)
+    except KeyError as e:
+        return jsonify({"error": f"Missing required field: {str(e)}"}), 400
+    except Exception as e:
+        return jsonify({"error": f"An unexpected error occurred: {str(e)}"}), 500
+
+@api_v1.route('/get-redirection-url', methods=['POST'])
+# @cross_origin()
+async def get_redirect_url():
+    try:
+        request_body = request.json
+        phone = request_body["phone"]
+        consent_handle = request_body["consentHandle"]
+        url = await build_url(consent_handle, f"{AA_REDIRECT_URL}", phone)
+        return {"url": url}
     except KeyError as e:
         return jsonify({"error": f"Missing required field: {str(e)}"}), 400
     except Exception as e:
@@ -85,15 +71,8 @@ async def consent():
 async def consent_handle():
     try:
         request_body = request.json
-        body = {
-            "ver": "2.0.0",
-            "timestamp": datetime_now(),
-            "txnid": str(uuid.uuid4()),
-            "ConsentHandle": request_body["consentHandle"]
-        }
-        headers = await make_headers(body, MOCK_AA_ENTITY_ID, MOCK_AA_SCENARIO_CONSENT_HANDLE_SUCCESS)
-        consent_handle = await make_request('/router/v2/Consent/handle', 'POST', headers, body)
-        return consent_handle
+        consent_handle = request_body["consentHandle"]
+        return await consent_handle_request(consent_handle)
     except KeyError as e:
         return jsonify({"error": f"Missing required field: {str(e)}"}), 400
     except Exception as e:
@@ -103,15 +82,8 @@ async def consent_handle():
 async def consent_fetch():
     try:
         request_body = request.json
-        body = {
-            "ver": "2.0.0",
-            "timestamp": datetime_now(),
-            "txnid": str(uuid.uuid4()),
-            "consentId": request_body["consentId"]
-        }
-        headers = await make_headers(body, MOCK_AA_ENTITY_ID, MOCK_AA_SCENARIO_CONSENT_FETCH_SUCCESS)
-        consent_fetch = await make_request('/router/v2/Consent/fetch', 'POST', headers, body)
-        return consent_fetch
+        consent_id = request_body["consentId"]
+        return await consent_fetch_request(consent_id)
     except KeyError as e:
         return jsonify({"error": f"Missing required field: {str(e)}"}), 400
     except Exception as e:
@@ -121,41 +93,9 @@ async def consent_fetch():
 async def fi_request():
     try:
         request_body = request.json
-        result = await fi_request_handler()
-        session_id, key_material = result
-        body = {
-            "ver": "2.0.0",
-            "timestamp": datetime_now(),
-            "txnid": str(uuid.uuid4()),
-            "Consent": {
-                "id": request_body["consentId"],
-                "digitalSignature": request_body["digitalSignature"]
-            },
-            "FIDataRange": {
-                "from": "2018-11-27T06:26:29.761Z",
-                "to": "2018-12-27T06:26:29.761Z"
-            },
-            "KeyMaterial": key_material
-        }
-        headers = await make_headers(body, MOCK_AA_ENTITY_ID, MOCK_AA_SCENARIO_FI_REQUEST_SUCCESS)
-
-        response = await update_fi_request_mock_response(session_id, MOCK_AA_SCENARIO_FI_REQUEST_SUCCESS)
-
-        fi_request = await make_request('/router/v2/FI/request', 'POST', headers, body)
-        return fi_request
-    except KeyError as e:
-        return jsonify({"error": f"Missing required field: {str(e)}"}), 400
-    except Exception as e:
-        return jsonify({"error": f"An unexpected error occurred: {str(e)}"}), 500
-
-# Route for FIP encryption
-@api_v1.route('/fip-encrypt', methods=['POST'])
-async def fip_encrypt():
-    try:
-        request_body = request.json
-        session_id = request_body["sessionId"]
-        await update_fi_fetch_mock_response(session_id, MOCK_AA_SCENARIO_FI_FETCH_SUCCESS)
-        return {"status": "ENCRYPTION_SUCCESS", "sessionId" : session_id}
+        consent_id = request_body["consentId"]
+        digital_signature = request_body["digitalSignature"]
+        return await fi_request_request(consent_id, digital_signature)
     except KeyError as e:
         return jsonify({"error": f"Missing required field: {str(e)}"}), 400
     except Exception as e:
@@ -165,37 +105,11 @@ async def fip_encrypt():
 async def fi_fetch():
     try:
         request_body = request.json
-        body = {
-            "ver": "2.0.0",
-            "timestamp": datetime_now(),
-            "txnid": str(uuid.uuid4()),
-            "sessionId": request_body["sessionId"],
-            "fipId": "silence-fip",
-            "linkRefNumber": [{"id": "1234-5678-9999"}]
-        }
-        headers = await make_headers(body, MOCK_AA_ENTITY_ID, MOCK_AA_SCENARIO_FI_FETCH_SUCCESS)
-        fi_fetch = await make_request('/router/v2/FI/fetch', 'POST', headers, body)
-        return fi_fetch
-    except KeyError as e:
-        return jsonify({"error": f"Missing required field: {str(e)}"}), 400
-    except Exception as e:
-        return jsonify({"error": f"An unexpected error occurred: {str(e)}"}), 500
-
-# Route for FIU decryption
-@api_v1.route('/fiu-decrypt', methods=['POST'])
-async def fiu_decrypt():
-    try:
-        request_body = request.json
         session_id = request_body["sessionId"]
-        fi_data = request_body["encryptedFI"]
-        xml_data = await process_encrypted_data(session_id, fi_data)
-        return xml_data
+        link_ref_number = request_body["linkRefNumber"]
+        return await fi_fetch_request(session_id, link_ref_number)
     except KeyError as e:
         return jsonify({"error": f"Missing required field: {str(e)}"}), 400
-    except ValueError as e:
-        return jsonify({"error": f"Invalid data format: {str(e)}"}), 400
-    except TypeError as e:
-        return jsonify({"error": f"An unexpected error occurred: {str(e)}"}), 500
     except Exception as e:
         return jsonify({"error": f"An unexpected error occurred: {str(e)}"}), 500
 
@@ -207,7 +121,6 @@ async def get_insights():
         insight_type = request_body["insight_type"]
         month = request_body["month"]
         data = await process_insights(insight_type, month)
-        print(data)
         return data
     except KeyError as e:
         return jsonify({"error": f"Missing required field: {str(e)}"}), 400
@@ -218,113 +131,87 @@ async def get_insights():
     except Exception as e:
         return jsonify({"error": f"An unexpected error occurred: {str(e)}"}), 500
 
-##### Setu & OneMoney AA APIs
+# Loanshark routes for the web app (UI APIs)
 
-# Create consent API
-@api_v1.route('/create-consent-setu', methods=['POST'])
-async def setu_consent():
+@api_v1.route('/create-consent-loanshark', methods=['POST'])
+async def consent_loanshark():
     try:
         request_body = request.json
-        body = {
-            "consentDuration": {
-                "unit": "MONTH",
-                "value": "24"
-            },
-            "vua": f"{request_body['phone']}@onemoney",
-            "dataRange": {
-                "from": request_body["dataRange"]["from"],
-                "to": request_body["dataRange"]["to"]
-            },
-            "consentTypes": [
-                "PROFILE",
-                "SUMMARY",
-                "TRANSACTIONS"
-            ]
-        }
-        print(body)
-        access_token = await get_setu_access_token()
-        headers = {
-            "Authorization": f"Bearer {access_token}",
-            "x-product-instance-id": SETU_PRODUCT_INSTANCE_ID
-        }
-        print(headers)
-        consent = await setu_make_request('/consents', 'POST', headers, body)
-        return consent
+        phone = request_body["phone"]
+        consent_create_response = await consent_create_request(phone)
+        request_body["consentHandle"] = consent_create_response["ConsentHandle"]
+        response = supabase.table("user").insert(request_body).execute()
+        url = await build_url(consent_create_response["ConsentHandle"], f"{AA_REDIRECT_URL}/user/loan?phone={phone}&id={response.data[0]['id']}", phone)
+        return {"id" : response.data[0]["id"], "url": url}
     except KeyError as e:
         return jsonify({"error": f"Missing required field: {str(e)}"}), 400
     except Exception as e:
         return jsonify({"error": f"An unexpected error occurred: {str(e)}"}), 500
 
-# Notification route for Setu
-@api_v1.route('/notification-setu', methods=['POST'])
-async def notification_setu():
+@app.route('/FI/Notification', methods=['POST'])
+async def fi_notification():
     try:
         request_body = request.json
-        notification_type = request_body['type']
-        # Data Session Status Update
-        if notification_type == 'SESSION_STATUS_UPDATE':
-            # Handle session status update
-            if not all(key in request_body for key in ['dataSessionId', 'consentId', 'data']):
-                return jsonify({"error": "Missing required fields for SESSION_STATUS_UPDATE"}), 400
-                
-            # Process session status update
-            session_status = request_body['data']['status']
-            if session_status == 'COMPLETED':
-                try:
-                    access_token = await get_setu_access_token()
-                    headers = {
-                        "Authorization": f"Bearer {access_token}",
-                        "x-product-instance-id": SETU_PRODUCT_INSTANCE_ID
-                    }
-                    session_id = request_body["dataSessionId"]
-                    data_session = await setu_make_request(f'/sessions/{session_id}', 'GET', headers, None)
-                    print(data_session)
-                except KeyError as e:
-                    return jsonify({"error": f"Missing required field: {str(e)}"}), 400
-                except Exception as e:
-                    return jsonify({"error": f"An unexpected error occurred: {str(e)}"}), 500
+        # Extract linkRefNumber(s)
+        link_ref_numbers = []
+        session_id = request_body["FIStatusNotification"]["sessionId"]
+        fi_status_response = request_body.get("FIStatusNotification", {}).get("FIStatusResponse", [])
+        for fi_status in fi_status_response:
+            accounts = fi_status.get("Accounts", [])
+            for account in accounts:
+                link_ref_number = account.get("linkRefNumber")
+                if link_ref_number:
+                    link_ref_numbers.append(link_ref_number)
+        user_data = supabase.table("user").select().eq("sessionId", session_id).execute()
+        if user_data.data:
+            user_id = user_data.data[0]["id"]
+            user_link_ref_numbers = user_data.data[0]["linkRefNumbers"] if user_data.data[0]["linkRefNumbers"] else []
+            user_link_ref_numbers.extend(link_ref_numbers)
+            supabase.table("user").update({"linkRefNumbers": user_link_ref_numbers}).eq("id", user_id).execute()
         
-        # Consent Status Update
-        elif notification_type == 'CONSENT_STATUS_UPDATE':
-            # Process consent status update
-            consent_status = request_body['data']['status']
-            
-            if consent_status == 'ACTIVE':
-                try:
-                    body = {
-                        "dataRange": {
-                            "from": "2023-01-01T00:00:00Z",
-                            "to": "2025-01-24T00:00:00Z"
-                            },
-                        "consentId": request_body['consentId'],
-                        "format": "json"
-                    }
-                    access_token = await get_setu_access_token()
-                    headers = {
-                        "Authorization": f"Bearer {access_token}",
-                        "x-product-instance-id": SETU_PRODUCT_INSTANCE_ID
-                    }
-                    data_session = await setu_make_request('/sessions', 'POST', headers, body)
-                    print(data_session)
-                except KeyError as e:
-                    return jsonify({"error": f"Missing required field: {str(e)}"}), 400
-                except Exception as e:
-                    return jsonify({"error": f"An unexpected error occurred: {str(e)}"}), 500
-            
-        else:
-            return jsonify({"error": f"Unknown notification type: {notification_type}"}), 400
-            
-        # Return success response
-        return jsonify({
-            "status": "success",
-            "message": f"Successfully processed {notification_type} notification",
-            "notificationId": request_body['notificationId']
-        }), 200
-        
-    except KeyError as e:
-        return jsonify({"error": f"Missing required field: {str(e)}"}), 400
+        response = {
+            "ver": "2.0.0",
+            "timestamp": datetime_now(),
+            "txnid": str(uuid.uuid4()),
+            "response": "OK"
+        }
+        return jsonify(response)
     except Exception as e:
         return jsonify({"error": f"An unexpected error occurred: {str(e)}"}), 500
+
+
+# Route for FIP encryption - MOCK AA
+# @api_v1.route('/fip-encrypt', methods=['POST'])
+# async def fip_encrypt():
+#     try:
+#         request_body = request.json
+#         session_id = request_body["sessionId"]
+#         await update_fi_fetch_mock_response(session_id, MOCK_AA_SCENARIO_FI_FETCH_SUCCESS)
+#         return {"status": "ENCRYPTION_SUCCESS", "sessionId" : session_id}
+#     except KeyError as e:
+#         return jsonify({"error": f"Missing required field: {str(e)}"}), 400
+#     except Exception as e:
+#         return jsonify({"error": f"An unexpected error occurred: {str(e)}"}), 500
+
+
+# Route for FIU decryption - MOCK AA
+# @api_v1.route('/fiu-decrypt', methods=['POST'])
+# async def fiu_decrypt():
+#     try:
+#         request_body = request.json
+#         session_id = request_body["sessionId"]
+#         fi_data = request_body["encryptedFI"]
+#         xml_data = await process_encrypted_data(session_id, fi_data)
+#         return xml_data
+#     except KeyError as e:
+#         return jsonify({"error": f"Missing required field: {str(e)}"}), 400
+#     except ValueError as e:
+#         return jsonify({"error": f"Invalid data format: {str(e)}"}), 400
+#     except TypeError as e:
+#         return jsonify({"error": f"An unexpected error occurred: {str(e)}"}), 500
+#     except Exception as e:
+#         return jsonify({"error": f"An unexpected error occurred: {str(e)}"}), 500
+
 
 # Register blueprint for v1
 app.register_blueprint(api_v1)

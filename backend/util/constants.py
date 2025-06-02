@@ -1,7 +1,10 @@
 # Base URLs
 SAHAMATI_BASEPATH = "https://api.sandbox.sahamati.org.in"
+FINVU_BASEPATH = "https://aasandbox.finvu.in"
 RAHASYA_URL= "https://rahasya.openbanking.silencelaboratories.com"
-RUST_SERVICE_URL="https://rust-service.openbanking.silencelaboratories.com"
+RUST_SERVICE_URL="http://localhost:8000"
+AA_REDIRECT_URL="http://localhost:3000"
+AA_REDIRECTION_SECRET=""
 
 # FIU credentials
 CLIENT_ID = ""
@@ -16,8 +19,8 @@ SUPABASE_URL=""
 SUPABASE_KEY=""
 
 # Mock AA entity
-MOCK_AA_ENTITY_ID = "silence-aa-mock"
-MOCK_AA_ENTITY_HANDLE = "silence-aa-mock"
+AA_ENTITY_ID = "cookiejar-aa@finvu.in"
+AA_ENTITY_HANDLE = "finvu"
 
 # Mock AA scenarios
 MOCK_AA_SCENARIO_CREATE_CONSENT_SUCCESS = "create-consent-success"
@@ -29,8 +32,3 @@ MOCK_AA_SCENARIO_FI_FETCH_SUCCESS="fi-fetch-success"
 # Keys for signing the requests - FIU public key and private key generated using mkjwk
 PUBLIC_KEY={}
 PRIVATE_KEY={}
-
-# Setu & OneMoney AA
-SETU_CLIENT_ID=""
-SETU_CLIENT_SECRET=""
-SETU_PRODUCT_INSTANCE_ID=""

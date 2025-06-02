@@ -3,32 +3,6 @@
 ### Example flow
 Secure Loans is a loan application platform, a FIU, that integrates with multiple Account Aggregator (AA) services to fetch financial data for loan underwriting.
 
-* User lands on the loan request page to provide details of the loan required
-* Secure Loans redirects the user to AA Consent screens to review details and select accounts to share data with FIU
-* Once consent is approved, FIU can now fetch data of the user.
-
-## Integration Types
-
-### Setu Integration
-- Uses OneMoney AA for real financial data on sandbox
-- Use a working Indian mobile number for this flow to receive OTPs
-- Supports consent creation and management
-- Handles data sessions and notifications
-- Provides decrypted financial data
-
-### Mock AA Integration
-- Simulates AA behavior for testing
-- You can use any mock mobile number and use `111111` as OTP everywhere
-- Provides predefined test scenarios
-- Includes mock data responses
-- Supports encryption simulation
-
-For a complete understanding, 
-
-- Run the services with Setu integration to understand the how the end-user will interact with AA and how the data fetch happens
-- Once done, run the services with Mock AA integration to understand the end-to-end data fetch flow by running APIs in Postman.
-- All the necessary information is given below to run these different integrations.
-
 ## Services Used
 
 ### Supabase
@@ -63,7 +37,11 @@ create table public.user (
   purpose character varying null,
   "loanStatus" text null,
   "consentHandle" text null,
-  "bankAccounts" jsonb null,
+  "linkRefNumbers" jsonb null,
+  "consentStatus" text null default 'PENDING'::text,
+  "dataStatus" text null default 'PENDING'::text,
+  "insightsStatus" text null default 'PENDING'::text,
+  "sessionId" text null,
   constraint user_pkey primary key (id)
 ) TABLESPACE pg_default;
 ```
@@ -77,48 +55,13 @@ SUPABASE_URL=your_supabase_url
 SUPABASE_KEY=your_supabase_key
 ```
 
-### AA Integration
+### Finvu AA Integration
 
-This repo consists of multiple AA integrations on Sandbox to help understand the flow better.
+This repo consists of Finuv AA integration on Sandbox to help understand the flow better.
 
-To facilitate switching between these integration, update the `.env` in the frontend repo with respective integration type
+`silence-fiu` is a registered FIU entity with SahamatiNet sandbox
 
-#### 1. Setu Integration
-Setu provides integration with OneMoney AA for fetching financial data
-
-##### Setup
-
-Get your credentials from Setu:
-
-You can [follow this guide](https://docs.setu.co/data/account-aggregator/quickstart) to setup an account with Setu and get your credentials
-
-   - Client ID
-   - Client Secret
-   - Product Instance ID
-
-Configure the following constants in `constants.py`:
-   ```env
-   SETU_CLIENT_ID=your_client_id
-   SETU_CLIENT_SECRET=your_client_secret
-   SETU_PRODUCT_INSTANCE_ID=your_product_instance_id
-   ```
-
-Notification endpoint:
-
-You need to provide a notification endpoint to Setu to receive notifications for different stages. You can use [Hookdeck Console](https://console.hookdeck.com/) to setup a webhook listener and add that in Setu config.
-
-We have a `/notification-setu` route in our backend to facilitate next steps when testing locally. You can simulate these notifications, by calling the `/notification-setu` endpoint with the received notification payload from Hookdeck.
-
-##### Features
-- Consent creation and management
-- Data session handling
-- Real-time notifications for consent and session status updates
-- Support for profile, summary, and transaction data types
-
-#### 2. Mock AA Integration
-`silence-fiu` is a registered FIU entity with SahamatiNet
-
-We create a mock AA, `slience-aa-mock` to simulate all the responses of AA via Simulator with mock data to facilitate end-to-end testing
+We integrated with Finvu AA on sandbox to facilitate end-to-end testing
 
 `constants.py` file in util folder needs to be updated with relevant details of the FIU that is testing.
 
@@ -126,13 +69,47 @@ We create a mock AA, `slience-aa-mock` to simulate all the responses of AA via S
 
 The above details can be obtained by registering on SahamatiNet sandbox and registering a FIU entity on sandbox. You can read more about it [here](https://developer.sahamati.org.in/sahamatinet-poc/integration-steps/sandbox-onboarding)
 
-##### Features
-- Simulated consent flow
-- Mock data responses
-- Test scenarios for different API endpoints
-- Encryption key management
+### Documentation for UI flow
 
-Documentation for Mock AA APIs
+#### User flow
+
+User lands on the loan request page to provide details of the loan required
+
+![Loan Request UI](./Loan-Request.png)
+
+
+Secure Loans redirects the user to AA Consent screens to review details and select accounts to share data with FIU
+
+![AA Screen UI](./AA-Screen.png)
+
+
+Once consent is approved, user is redirected to the status page.
+
+![Loan Status UI](./Loan-Status.png)
+
+
+#### Admin flow
+
+Admin can now review user data to approve or reject loan
+
+List of all loan requests
+
+![Admin List UI](./Admin-List.png)
+
+Dashboard where Admin can trigger the data fetch and insight generation
+
+![Admin Dashboard UI](./Admin-Dashboard.png)
+
+### Documentation for API flow
+
+Follow the flow in this order
+
+Step 1: Make a request to the Create Consent API to initiate a consent request.
+Step 2: Make a request to get the redirection URL of AA for the end-user
+Step 2: Use the consent handle received from the previous step to make a POST request to the Consent Handle API.
+Step 3: Fetch the consent details using the Consent Fetch API.
+Step 4: Initiate an FI request using the FI Request API with the necessary consent details (consentId and digitalSignature).
+Step 6: Fetch the encrypted FI data using the FI Fetch API.
 
 ##### Create Consent API
 
@@ -140,8 +117,27 @@ Endpoint: `/api/v1/create-consent`
 
 Method: POST
 
-Description: This endpoint is used to create a consent request. It requires no input from the client as the body is generated within the function.
+Description: This endpoint is used to create a consent request. It requires your mobile number as input to receive OTPs from AA.
 Response: Returns the consent handle of the consent
+
+##### Get Redirection URL API
+
+Endpoint: `/api/v1/get-redirection-url`
+
+Method: POST
+
+Description: This endpoint is used to create a redirection URL to the AA for the end-user to review the consent request. It requires mobile number and the consent handle received in the Create Consent call as input
+Response: Returns the redirection URL
+
+
+##### Account linking and approval
+
+Click on the URL generated, you should visit the AA consent manager. Login and search for `Setu FIP` and  choose `Setu FIP` as your bank/financial institution.
+
+Once selected, you'll be displayed multiple bank accounts to select from. Please select only the Savings accounts which is not a `FAILURE` in the list.
+
+You'll receive an OTP from Setu to link that one Savings account. After linking, you can continue to approval and consent manager redirects you to the FIU app.
+
 
 ##### Consent Handle API:
 
@@ -170,14 +166,9 @@ Method: POST
 Description: This endpoint initiates a financial information (FI) request. The request body must include a consentId and a digitalSignature. We generate the FIP encryption key and sessionId. We save them in a DB table with sessionID being the primary key. Using these values, update the mock response for this scenario
 Response: Returns the FI request response.
 
-##### FIP Encryption API
+##### FI notification
 
-Endpoint: `/api/v1/fip-encrypt`
-
-Method: POST
-
-Description: This endpoint is used for FIP encryption. The request body must include a sessionId. This replicates the encryption done by the FIP. We generate the FIP encryption key and fetch FIU encryption key from the DB based on sessionID. Use the keys to generate a encrypted payload and update the mock response for this scenario.
-Response: Returns a status indicating encryption success.
+Once the request for FI is succesfully raised, we'll receive a notification on the `baseURL/FI/Notification` endpoint from Finvu. This provides us the status of FI data. We can now fetch the FI data based on the notification data
 
 ##### FI Fetch API
 
@@ -187,26 +178,6 @@ Method: POST
 
 Description: This endpoint fetches financial information. The request body must include a sessionId.
 Response: Returns the FI fetch response.
-
-##### FIU Decrypt API
-
-Endpoint: `/api/v1/fiu-decrypt`
-
-Method: POST
-
-Description: This endpoint decrypts financial information. The request body must include a sessionId and encryptedFI. This replicates the decryption done by the FIU. This fetches the FIP and FIU keys from the DB based on sessionId to perform decryption.
-Response: Returns the decrypted XML data.
-
-
-Sequence of making API calls
-
-Step 1: Make a request to the Create Consent API to initiate a consent request.
-Step 2: Use the consent handle received from the previous step to make a POST request to the Consent Handle API.
-Step 3: Fetch the consent details using the Consent Fetch API.
-Step 4: Initiate an FI request using the FI Request API with the necessary consent details (consentId and digitalSignature).
-Step 5: Encrypt the FI data using the FIP Encryption API.
-Step 6: Fetch the encrypted FI data using the FI Fetch API.
-Step 7: Finally, decrypt the FI data using the FIU Decrypt API
 
 You can find the Postman collection and environment [here](https://documenter.getpostman.com/view/13895199/2sB2qdh1Bq)
 
@@ -233,9 +204,8 @@ You can find the Postman collection and environment [here](https://documenter.ge
    npm install
    ```
 
-2. Configure environment variables:
-   ```env
-   NEXT_PUBLIC_INTEGRATION_TYPE=SETU  # or MOCK
+2. Configure constants.ts:
+   ```
    SUPABASE_URL=your_supabase_url
    SUPABASE_KEY=your_supabase_key
    BACKEND_URL=your_backend_url
