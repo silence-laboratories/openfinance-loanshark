@@ -98,6 +98,14 @@ List of all loan requests
 
 Dashboard where Admin can trigger the data fetch and insight generation
 
+During this process, replicate the FI notification flow from AA to FIU by making a request to `/FI/Notification` endpoint. Copy the `sessionId` from the dashboard and replace the value in Postman.
+
+You can refer about it here
+
+##### FI notification
+
+Once the request for FI is succesfully raised, we'll receive a notification on the `baseURL/FI/Notification` endpoint from Finvu. This provides us the status of FI data. We can now fetch the FI data based on the notification data 
+
 ![Admin Dashboard UI](./Admin-Dashboard.png)
 
 ### Documentation for API flow
